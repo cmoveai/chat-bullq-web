@@ -12,11 +12,14 @@ import {
   Briefcase,
   Zap,
   BookOpen,
-  Users,
+  Contact,
+  MessageSquare,
+  Bot,
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
 import { JarvisTree } from '@/features/ai-agents/components/jarvis-tree';
 import { PipelinesTree } from '@/features/pipelines/components/pipelines-tree';
+import { NavGroup } from '@/components/layout/nav-group';
 
 import { useAuthStore } from '@/stores/auth-store';
 import { Avatar } from '@/components/ui/avatar';
@@ -29,7 +32,6 @@ import {
   SidebarItem,
   SidebarLabel,
   SidebarSpacer,
-  SidebarHeading,
 } from '@/components/ui/sidebar';
 import {
   Dropdown,
@@ -46,7 +48,7 @@ const topNav = [
 ];
 
 const crmNav = [
-  { href: '/settings/contacts', label: 'Contatos', icon: Users },
+  { href: '/settings/contacts', label: 'Contatos', icon: Contact },
   { href: '/tasks', label: 'Tarefas', icon: CheckSquare },
   { href: '/offers', label: 'Ofertas', icon: Briefcase },
 ];
@@ -107,28 +109,31 @@ export function AppSidebar() {
         </SidebarSection>
 
         <SidebarSection>
-          <SidebarHeading>CRM</SidebarHeading>
-          {crmNav.map((item) => (
-            <SidebarItem key={item.href} href={item.href}>
-              <item.icon className="size-5" />
-              <SidebarLabel>{item.label}</SidebarLabel>
+          <NavGroup label="CRM" icon={Contact} storageKey="nav-crm-expanded">
+            {crmNav.map((item) => (
+              <SidebarItem key={item.href} href={item.href}>
+                <item.icon className="size-4" />
+                <SidebarLabel>{item.label}</SidebarLabel>
+              </SidebarItem>
+            ))}
+            <PipelinesTree />
+          </NavGroup>
+
+          <NavGroup
+            label="Atendimentos"
+            icon={MessageSquare}
+            storageKey="nav-atendimentos-expanded"
+          >
+            <InboxTree />
+          </NavGroup>
+
+          <NavGroup label="Agentes" icon={Bot} storageKey="nav-agentes-expanded">
+            <JarvisTree />
+            <SidebarItem href="/knowledge-bases">
+              <BookOpen className="size-4" />
+              <SidebarLabel>Bases de Conhecimento</SidebarLabel>
             </SidebarItem>
-          ))}
-          <PipelinesTree />
-        </SidebarSection>
-
-        <SidebarSection>
-          <SidebarHeading>Atendimentos</SidebarHeading>
-          <InboxTree />
-        </SidebarSection>
-
-        <SidebarSection>
-          <SidebarHeading>Agentes</SidebarHeading>
-          <JarvisTree />
-          <SidebarItem href="/knowledge-bases">
-            <BookOpen className="size-5" />
-            <SidebarLabel>Bases de Conhecimento</SidebarLabel>
-          </SidebarItem>
+          </NavGroup>
         </SidebarSection>
 
         <SidebarSection>
