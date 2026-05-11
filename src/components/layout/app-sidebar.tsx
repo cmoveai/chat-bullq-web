@@ -18,6 +18,9 @@ import {
   Users,
   CreditCard,
   User,
+  LayoutGrid,
+  Magnet,
+  Clock,
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
 import { JarvisTree } from '@/features/ai-agents/components/jarvis-tree';
@@ -54,6 +57,9 @@ const crmNav = [
 
 const automacoesNav = [
   { href: '/automations', label: 'Minhas Automações', icon: Zap },
+  { href: '/automations/templates', label: 'Modelos', icon: LayoutGrid },
+  { href: '/automations/lead-captures', label: 'Capturas de Leads', icon: Magnet },
+  { href: '/automations/waitlists', label: 'Listas de Espera', icon: Clock },
 ];
 
 export function AppSidebar() {
