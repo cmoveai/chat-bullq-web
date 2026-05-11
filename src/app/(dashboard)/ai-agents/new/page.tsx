@@ -6,9 +6,16 @@ import { Bot, ArrowLeft, ArrowRight, Loader2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/ui/page-header';
 import { aiAgentsService } from '@/features/ai-agents/services/ai-agents.service';
+import { knowledgeBasesService } from '@/features/knowledge-bases/services/knowledge-bases.service';
 import { WizardStepper } from '@/features/ai-agents/components/wizard/wizard-stepper';
 import { StepBasicInfo } from '@/features/ai-agents/components/wizard/step-basic-info';
-import { StepPlaceholder } from '@/features/ai-agents/components/wizard/step-placeholder';
+import { StepCommunication } from '@/features/ai-agents/components/wizard/step-communication';
+import { StepCompany } from '@/features/ai-agents/components/wizard/step-company';
+import { StepKnowledge } from '@/features/ai-agents/components/wizard/step-knowledge';
+import { StepInstructions } from '@/features/ai-agents/components/wizard/step-instructions';
+import { StepAdvanced } from '@/features/ai-agents/components/wizard/step-advanced';
+import { StepConnections } from '@/features/ai-agents/components/wizard/step-connections';
+import { StepIntegrations } from '@/features/ai-agents/components/wizard/step-integrations';
 import {
   INITIAL_WIZARD_STATE,
   WIZARD_STEPS,
@@ -60,6 +67,32 @@ export default function NewAgentPage() {
     }
     setSaving(true);
     try {
+      // Campos sem coluna dedicada no schema vão pra modelParams.wizard.
+      // Quando o backend ganhar colunas próprias, basta migrar daqui.
+      const wizardExtras = {
+        communication: {
+          style: state.communicationStyle,
+          purpose: state.purpose,
+          useEmojis: state.useEmojis,
+          restrictedTopics: state.restrictedTopics,
+          splitLongResponses: state.splitLongResponses,
+          languages: state.languages,
+        },
+        company: {
+          name: state.companyName,
+          website: state.companyWebsite,
+        },
+        advanced: {
+          timezone: state.timezone,
+          responseDelaySeconds: state.responseDelaySeconds,
+          transferToHumanEnabled: state.transferToHumanEnabled,
+          maxInteractionsBeforeTransfer: state.maxInteractionsBeforeTransfer,
+        },
+        integrations: {
+          googleCalendar: state.googleCalendarConfig,
+        },
+      };
+
       const agent = await aiAgentsService.create({
         name: state.name.trim(),
         description: state.description.trim() || undefined,
@@ -70,7 +103,36 @@ export default function NewAgentPage() {
         temperature: 0.7,
         parentAgentId: null,
         department: undefined,
-      });
+        modelParams: { wizard: wizardExtras } as any,
+        collectContactData: state.collectContactData,
+        collectStandardFields: state.collectStandardFields,
+        collectCustomFieldIds: state.collectCustomFieldIds,
+        leadQualificationEnabled: state.leadQualificationEnabled,
+        leadQualificationTrigger: state.leadQualificationTrigger,
+        leadQualificationMessageCount: state.leadQualificationMessageCount,
+        leadQualificationPrompt:
+          state.leadQualificationPrompt.trim() || undefined,
+      } as any);
+
+      // Link knowledge bases + channels in best-effort follow-ups.
+      // The agent already exists; failures here only log a warning.
+      await Promise.allSettled([
+        ...state.knowledgeBaseIds.map((kbId) =>
+          knowledgeBasesService
+            .linkAgents(kbId, [agent.id])
+            .catch((err: any) =>
+              console.warn(`KB link ${kbId} failed:`, err?.message),
+            ),
+        ),
+        ...state.channelIds.map((chId) =>
+          aiAgentsService
+            .assignChannel(agent.id, { channelId: chId })
+            .catch((err: any) =>
+              console.warn(`Channel ${chId} bind failed:`, err?.message),
+            ),
+        ),
+      ]);
+
       toast.success(`Agente "${agent.name}" criado`);
       router.push('/ai-agents?tab=agents');
     } catch (err: any) {
@@ -159,95 +221,19 @@ function renderStep(
     case 0:
       return <StepBasicInfo state={state} update={update} />;
     case 1:
-      return (
-        <StepPlaceholder
-          title="Comunicação"
-          description="Configure como seu agente se comunicará com os usuários"
-          preview={[
-            'Estilo de comunicação: Formal / Normal / Casual',
-            'Propósito: Suporte / Vendas / Uso Pessoal',
-            'Usar emojis nas respostas (toggle)',
-            'Restringir tópicos que o agente NÃO deve discutir',
-            'Dividir respostas longas em múltiplas mensagens',
-            'Idiomas suportados (10 idiomas)',
-          ]}
-        />
-      );
+      return <StepCommunication state={state} update={update} />;
     case 2:
-      return (
-        <StepPlaceholder
-          title="Empresa"
-          description="Forneça detalhes sobre sua empresa"
-          preview={[
-            'Nome da empresa / entidade',
-            'Site oficial da empresa',
-            'Setor e descrição (próxima iteração)',
-          ]}
-        />
-      );
+      return <StepCompany state={state} update={update} />;
     case 3:
-      return (
-        <StepPlaceholder
-          title="Base de Conhecimento"
-          description="Selecione bases de conhecimento para seu agente"
-          preview={[
-            'Listar Bases de Conhecimento existentes da org',
-            'Multi-select pra vincular ao agente',
-            'CTA Criar Nova Base (reusa componente standalone /knowledge-bases)',
-            'Empty state se org não tiver nenhuma base',
-          ]}
-        />
-      );
+      return <StepKnowledge state={state} update={update} />;
     case 4:
-      return (
-        <StepPlaceholder
-          title="Instruções Extras"
-          description="Adicione instruções extras para personalizar o comportamento do seu agente"
-          preview={[
-            'Textarea grande para o system prompt customizado',
-            'Botão "Gerar com IA" com 8 perguntas guiadas (contexto, objetivo, estilo, público, formato, exemplo few-shot, regras, ponto crítico)',
-            'Preview do prompt gerado antes de salvar',
-          ]}
-        />
-      );
+      return <StepInstructions state={state} update={update} />;
     case 5:
-      return (
-        <StepPlaceholder
-          title="Configurações Avançadas"
-          description="Configure recursos avançados para seu agente"
-          preview={[
-            'Fuso horário (default America/Sao_Paulo)',
-            'Atraso na resposta em segundos (0, 5, 10, 30, 60)',
-            'Habilitar transferência para humano + número máximo de interações',
-            'Habilitar coleta de dados (Nome / Telefone / Email + campos personalizados)',
-            'Habilitar qualificação de lead com IA (modelo + gatilho + prompt customizado)',
-          ]}
-        />
-      );
+      return <StepAdvanced state={state} update={update} />;
     case 6:
-      return (
-        <StepPlaceholder
-          title="Conexões"
-          description="Conecte seu agente aos canais de atendimento"
-          preview={[
-            'Lista de canais conectados (WhatsApp / Instagram / API)',
-            'Multi-select pra vincular agente aos canais',
-            'Status do canal (conectado / desconectado / pendente)',
-          ]}
-        />
-      );
+      return <StepConnections state={state} update={update} />;
     case 7:
-      return (
-        <StepPlaceholder
-          title="Integrações"
-          description="Conecte seu agente com serviços externos"
-          preview={[
-            'Google Calendar (wizard 3-step: Calendário + Horário Funcionamento + Campos de Agendamento)',
-            'Card de cada integração disponível com botão Conectar',
-            'Listagem das integrações já configuradas',
-          ]}
-        />
-      );
+      return <StepIntegrations state={state} update={update} />;
     default:
       return null;
   }
