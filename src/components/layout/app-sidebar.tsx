@@ -9,6 +9,7 @@ import {
   Building2,
   ChevronUp,
   CheckSquare,
+  Briefcase,
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
 import { JarvisTree } from '@/features/ai-agents/components/jarvis-tree';
@@ -39,6 +40,7 @@ const navItems = [
   { href: '/home', label: 'Início', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tasks', label: 'Tarefas', icon: CheckSquare },
+  { href: '/offers', label: 'Ofertas', icon: Briefcase },
 ];
 
 export function AppSidebar() {

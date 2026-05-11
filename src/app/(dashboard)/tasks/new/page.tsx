@@ -29,6 +29,7 @@ import {
 } from '@/features/tasks/services/tasks.service';
 import { contactsService } from '@/features/contacts/services/contacts.service';
 import { membersService } from '@/features/settings/services/members.service';
+import { offersService } from '@/features/offers/services/offers.service';
 
 const PRIORITY_OPTIONS: {
   value: TaskPriority;
@@ -60,6 +61,7 @@ export default function NewTaskPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [contactId, setContactId] = useState('');
+  const [cardId, setCardId] = useState('');
   const [assignedToId, setAssignedToId] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
@@ -75,11 +77,17 @@ export default function NewTaskPage() {
     queryKey: ['members', 'list-for-task'],
     queryFn: () => membersService.list(),
   });
+  const offersQuery = useQuery({
+    queryKey: ['offers', 'list-for-task'],
+    queryFn: () => offersService.list({}),
+  });
 
   const rawContacts = contactsQuery.data?.contacts;
   const contacts = Array.isArray(rawContacts) ? rawContacts : [];
   const rawMembers = membersQuery.data;
   const members = Array.isArray(rawMembers) ? rawMembers : [];
+  const rawOffers = offersQuery.data;
+  const offers = Array.isArray(rawOffers) ? rawOffers : [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +103,7 @@ export default function NewTaskPage() {
         priority,
         status,
         contactId: contactId || undefined,
+        cardId: cardId || undefined,
         assignedToId: assignedToId || undefined,
         dueDate: dueDate || undefined,
       });
@@ -209,10 +218,16 @@ export default function NewTaskPage() {
                     Oferta
                   </label>
                   <select
-                    disabled
-                    className="w-full rounded-md border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800/50"
+                    value={cardId}
+                    onChange={(e) => setCardId(e.target.value)}
+                    className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
                   >
-                    <option>Em breve · módulo de Ofertas</option>
+                    <option value="">Selecione uma oferta</option>
+                    {offers.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.title}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
