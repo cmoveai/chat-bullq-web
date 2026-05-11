@@ -5,7 +5,6 @@ import {
   LayoutGrid,
   Instagram,
   ShoppingCart,
-  CreditCard,
   Phone,
   Mail,
   Slack,
@@ -20,11 +19,36 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 
+function KirvanoLogo({ className }: { className?: string }) {
+  // Container do TemplateCard já aplica bg preto + rounded · só desenhamos o texto branco.
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-label="Kirvano"
+    >
+      <text
+        x="32"
+        y="40"
+        textAnchor="middle"
+        fontFamily="Inter, system-ui, sans-serif"
+        fontWeight="700"
+        fontSize="22"
+        letterSpacing="-1.5"
+        fill="#FFFFFF"
+      >
+        KVN
+      </text>
+    </svg>
+  );
+}
+
 type Template = {
   id: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: LucideIcon | React.ComponentType<{ className?: string }>;
   iconBg: string;
   features: string[];
   creditsPerRun?: number;
@@ -71,8 +95,8 @@ const templates: Template[] = [
     title: 'Automação de Compras Kirvano',
     description:
       'Receba notificações automáticas de cada venda Kirvano, dispare onboarding via WhatsApp e atualize o CRM em tempo real',
-    icon: CreditCard,
-    iconBg: 'bg-gradient-to-br from-fuchsia-500 to-rose-600',
+    icon: KirvanoLogo,
+    iconBg: 'bg-black',
     features: [
       'Webhook de vendas em tempo real',
       'Onboarding pós-compra no WhatsApp',
