@@ -93,33 +93,33 @@ export interface TaskFilters {
 
 export const tasksService = {
   async list(filters: TaskFilters = {}): Promise<Task[]> {
-    const { data } = await api.get<Task[]>('/tasks', { params: filters });
-    return data;
+    const { data } = await api.get('/tasks', { params: filters });
+    return data.data;
   },
 
   async stats(): Promise<TaskStats> {
-    const { data } = await api.get<TaskStats>('/tasks/stats');
-    return data;
+    const { data } = await api.get('/tasks/stats');
+    return data.data;
   },
 
   async getById(id: string): Promise<Task> {
-    const { data } = await api.get<Task>(`/tasks/${id}`);
-    return data;
+    const { data } = await api.get(`/tasks/${id}`);
+    return data.data;
   },
 
   async create(input: CreateTaskInput): Promise<Task> {
-    const { data } = await api.post<Task>('/tasks', input);
-    return data;
+    const { data } = await api.post('/tasks', input);
+    return data.data;
   },
 
   async update(id: string, input: UpdateTaskInput): Promise<Task> {
-    const { data } = await api.patch<Task>(`/tasks/${id}`, input);
-    return data;
+    const { data } = await api.patch(`/tasks/${id}`, input);
+    return data.data;
   },
 
   async remove(id: string): Promise<{ ok: boolean }> {
-    const { data } = await api.delete<{ ok: boolean }>(`/tasks/${id}`);
-    return data;
+    const { data } = await api.delete(`/tasks/${id}`);
+    return data.data ?? data;
   },
 };
 
