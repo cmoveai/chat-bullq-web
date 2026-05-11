@@ -17,6 +17,7 @@ import {
   type KnowledgeBase,
   formatBytes,
 } from '@/features/knowledge-bases/services/knowledge-bases.service';
+import { PageHeader } from '@/components/ui/page-header';
 
 type Mode = 'list' | 'create-text' | 'create-upload';
 
@@ -49,34 +50,29 @@ export default function KnowledgeBasesPage() {
 
   return (
     <div className="flex h-full flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            <BookOpen className="h-5 w-5 text-primary" />
-            Bases de Conhecimento
-          </h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
-            Documentos e textos que seus agentes consultam pra responder
-            clientes (FAQs, manuais, catálogo, regras).
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setMode('create-text')}
-            className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
-          >
-            <TypeIcon className="h-4 w-4" />
-            Texto livre
-          </button>
-          <button
-            onClick={() => setMode('create-upload')}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            <Upload className="h-4 w-4" />
-            Upload arquivo
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        icon={BookOpen}
+        title="Bases de Conhecimento"
+        description="Documentos e textos que seus agentes consultam pra responder clientes"
+        actions={
+          <>
+            <button
+              onClick={() => setMode('create-text')}
+              className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/20"
+            >
+              <TypeIcon className="h-4 w-4" />
+              Texto livre
+            </button>
+            <button
+              onClick={() => setMode('create-upload')}
+              className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/25"
+            >
+              <Upload className="h-4 w-4" />
+              Upload arquivo
+            </button>
+          </>
+        }
+      />
 
       <div className="flex-1 overflow-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         {listQuery.isLoading ? (

@@ -19,6 +19,7 @@ import { offersService } from '@/features/offers/services/offers.service';
 import { pipelinesService } from '@/features/pipelines/services/pipelines.service';
 import { contactsService } from '@/features/contacts/services/contacts.service';
 import { membersService } from '@/features/settings/services/members.service';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function NewOfferPage() {
   const router = useRouter();
@@ -110,28 +111,22 @@ export default function NewOfferPage() {
 
   return (
     <form onSubmit={handleSubmit} className="flex h-full flex-col">
-      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-6 text-white">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15">
-              <Briefcase className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold">Criar Nova Oferta</h1>
-              <p className="mt-0.5 text-sm text-white/80">
-                Preencha os detalhes para criar uma nova oferta/negócio
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => router.push('/offers')}
-            className="inline-flex items-center gap-2 rounded-md bg-white/95 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-white"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar para Ofertas
-          </button>
-        </div>
+      <div className="px-6 pt-6">
+        <PageHeader
+          icon={Briefcase}
+          title="Criar nova oferta"
+          description="Preencha os detalhes para criar uma nova oferta"
+          actions={
+            <button
+              type="button"
+              onClick={() => router.push('/offers')}
+              className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/25"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Voltar para Ofertas
+            </button>
+          }
+        />
       </div>
 
       <div className="flex-1 overflow-auto bg-zinc-50 p-6 dark:bg-zinc-950">

@@ -12,6 +12,7 @@ import {
   Briefcase,
   Zap,
   BookOpen,
+  Users,
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
 import { JarvisTree } from '@/features/ai-agents/components/jarvis-tree';
@@ -28,6 +29,7 @@ import {
   SidebarItem,
   SidebarLabel,
   SidebarSpacer,
+  SidebarHeading,
 } from '@/components/ui/sidebar';
 import {
   Dropdown,
@@ -38,13 +40,19 @@ import {
   DropdownDivider,
 } from '@/components/ui/dropdown';
 
-const navItems = [
+const topNav = [
   { href: '/home', label: 'Início', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+];
+
+const crmNav = [
+  { href: '/settings/contacts', label: 'Contatos', icon: Users },
   { href: '/tasks', label: 'Tarefas', icon: CheckSquare },
   { href: '/offers', label: 'Ofertas', icon: Briefcase },
+];
+
+const otherNav = [
   { href: '/automations', label: 'Automações', icon: Zap },
-  { href: '/knowledge-bases', label: 'Bases de Conhecimento', icon: BookOpen },
 ];
 
 export function AppSidebar() {
@@ -90,15 +98,46 @@ export function AppSidebar() {
 
       <SidebarBody>
         <SidebarSection>
-          {navItems.map((item) => (
+          {topNav.map((item) => (
             <SidebarItem key={item.href} href={item.href}>
               <item.icon className="size-5" />
               <SidebarLabel>{item.label}</SidebarLabel>
             </SidebarItem>
           ))}
-          <InboxTree />
+        </SidebarSection>
+
+        <SidebarSection>
+          <SidebarHeading>CRM</SidebarHeading>
+          {crmNav.map((item) => (
+            <SidebarItem key={item.href} href={item.href}>
+              <item.icon className="size-5" />
+              <SidebarLabel>{item.label}</SidebarLabel>
+            </SidebarItem>
+          ))}
           <PipelinesTree />
+        </SidebarSection>
+
+        <SidebarSection>
+          <SidebarHeading>Atendimentos</SidebarHeading>
+          <InboxTree />
+        </SidebarSection>
+
+        <SidebarSection>
+          <SidebarHeading>Agentes</SidebarHeading>
           <JarvisTree />
+          <SidebarItem href="/knowledge-bases">
+            <BookOpen className="size-5" />
+            <SidebarLabel>Bases de Conhecimento</SidebarLabel>
+          </SidebarItem>
+        </SidebarSection>
+
+        <SidebarSection>
+          {otherNav.map((item) => (
+            <SidebarItem key={item.href} href={item.href}>
+              <item.icon className="size-5" />
+              <SidebarLabel>{item.label}</SidebarLabel>
+            </SidebarItem>
+          ))}
         </SidebarSection>
 
         <SidebarSpacer />

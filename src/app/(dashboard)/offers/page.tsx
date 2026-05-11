@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -10,19 +11,30 @@ import {
   Trophy,
   Trash2,
   Phone,
+  Search,
+  KanbanSquare,
+  Activity,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   offersService,
   type Offer,
+  type OfferStatus,
   OFFER_STATUS_LABEL,
   OFFER_STATUS_COLOR,
   formatCurrency,
 } from '@/features/offers/services/offers.service';
+import { pipelinesService } from '@/features/pipelines/services/pipelines.service';
+import { PageHeader } from '@/components/ui/page-header';
+import { FilterSelect } from '@/components/ui/filter-select';
 
 export default function OffersPage() {
   const qc = useQueryClient();
   const router = useRouter();
+
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<OfferStatus | ''>('');
+  const [pipelineFilter, setPipelineFilter] = useState<string>('');
 
   const statsQuery = useQuery({
     queryKey: ['offers', 'stats'],
@@ -30,9 +42,20 @@ export default function OffersPage() {
     refetchInterval: 30_000,
   });
 
+  const pipelinesQuery = useQuery({
+    queryKey: ['pipelines'],
+    queryFn: () => pipelinesService.list(),
+    staleTime: 60_000,
+  });
+
   const offersQuery = useQuery({
-    queryKey: ['offers', 'list'],
-    queryFn: () => offersService.list({}),
+    queryKey: ['offers', 'list', { search, statusFilter, pipelineFilter }],
+    queryFn: () =>
+      offersService.list({
+        search: search || undefined,
+        status: statusFilter || undefined,
+        pipelineId: pipelineFilter || undefined,
+      }),
   });
 
   const deleteMutation = useMutation({
@@ -56,24 +79,29 @@ export default function OffersPage() {
 
   return (
     <div className="flex h-full flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            <Briefcase className="h-5 w-5 text-primary" />
-            Ofertas
-          </h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
-            Gerencie todos os seus negócios e acompanhe o progresso.
-          </p>
-        </div>
-        <button
-          onClick={() => router.push('/offers/new')}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          Nova oferta
-        </button>
-      </div>
+      <PageHeader
+        icon={Briefcase}
+        title="Ofertas"
+        description="Gerencie todos os seus negócios e acompanhe o progresso"
+        actions={
+          <>
+            <button
+              onClick={() => router.push('/pipelines')}
+              className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/20"
+            >
+              <KanbanSquare className="h-4 w-4" />
+              Kanban
+            </button>
+            <button
+              onClick={() => router.push('/offers/new')}
+              className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/25"
+            >
+              <Plus className="h-4 w-4" />
+              Nova oferta
+            </button>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
@@ -97,6 +125,39 @@ export default function OffersPage() {
           label="Em Andamento"
           value={stats?.inProgress ?? '—'}
           icon={<TrendingUp className="h-4 w-4" />}
+        />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[260px] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+          <input
+            type="text"
+            placeholder="Buscar ofertas..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-9 pr-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+          />
+        </div>
+        <FilterSelect
+          icon={KanbanSquare}
+          value={pipelineFilter}
+          onChange={setPipelineFilter}
+          placeholder="Todos os Pipelines"
+          options={(pipelinesQuery.data ?? []).map((p) => ({
+            value: p.id,
+            label: p.name,
+          }))}
+        />
+        <FilterSelect
+          icon={Activity}
+          value={statusFilter}
+          onChange={setStatusFilter}
+          placeholder="Todos os Status"
+          options={(Object.keys(OFFER_STATUS_LABEL) as OfferStatus[]).map((s) => ({
+            value: s,
+            label: OFFER_STATUS_LABEL[s],
+          }))}
         />
       </div>
 

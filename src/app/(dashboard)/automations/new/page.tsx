@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { automationsService } from '@/features/automations/services/automations.service';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function NewAutomationPage() {
   const router = useRouter();
@@ -76,31 +77,22 @@ export default function NewAutomationPage() {
 
   return (
     <form onSubmit={handleSubmit} className="flex h-full flex-col">
-      <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-6 text-white">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15">
-              <Instagram className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold">
-                Nova automação · Instagram DM por comentário
-              </h1>
-              <p className="mt-0.5 text-sm text-white/80">
-                Quando alguém comentar com uma palavra-chave, mande DM
-                automaticamente.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => router.push('/automations')}
-            className="inline-flex items-center gap-2 rounded-md bg-white/95 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-white"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </button>
-        </div>
+      <div className="px-6 pt-6">
+        <PageHeader
+          icon={Instagram}
+          title="Nova automação · Instagram DM por comentário"
+          description="Quando alguém comentar com uma palavra-chave, mande DM automaticamente"
+          actions={
+            <button
+              type="button"
+              onClick={() => router.push('/automations')}
+              className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/25"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Voltar
+            </button>
+          }
+        />
       </div>
 
       <div className="flex-1 overflow-auto bg-zinc-50 p-6 dark:bg-zinc-950">

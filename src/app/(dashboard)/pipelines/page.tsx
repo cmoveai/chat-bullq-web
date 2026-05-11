@@ -9,6 +9,7 @@ import {
   pipelinesService,
   type Pipeline,
 } from '@/features/pipelines/services/pipelines.service';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function PipelinesIndexPage() {
   const qc = useQueryClient();
@@ -59,26 +60,21 @@ export default function PipelinesIndexPage() {
   };
 
   return (
-    <div className="flex h-full flex-col p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            <KanbanSquare className="h-5 w-5 text-primary" />
-            Pipelines
-          </h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
-            Kanban customizado por org. Cada pipeline tem stages próprias e
-            cards independentes — podem ou não estar vinculados a uma conversa.
-          </p>
-        </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          Novo pipeline
-        </button>
-      </div>
+    <div className="flex h-full flex-col gap-6 p-6">
+      <PageHeader
+        icon={KanbanSquare}
+        title="Pipelines"
+        description="Automatize fluxos de trabalho com base em gatilhos e condições"
+        actions={
+          <button
+            onClick={() => setCreating(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/25"
+          >
+            <Plus className="h-4 w-4" />
+            Novo pipeline
+          </button>
+        }
+      />
 
       {creating && (
         <div className="mt-4 flex items-center gap-2 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">

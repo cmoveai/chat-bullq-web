@@ -18,6 +18,7 @@ import {
   type Automation,
   AUTOMATION_TYPE_LABEL,
 } from '@/features/automations/services/automations.service';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function AutomationsPage() {
   const qc = useQueryClient();
@@ -70,25 +71,20 @@ export default function AutomationsPage() {
 
   return (
     <div className="flex h-full flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            <Zap className="h-5 w-5 text-primary" />
-            Automações
-          </h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
-            Crie regras automáticas que disparam quando algo acontece (ex:
-            comentário no Instagram → DM).
-          </p>
-        </div>
-        <button
-          onClick={() => router.push('/automations/new')}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          Nova automação
-        </button>
-      </div>
+      <PageHeader
+        icon={Zap}
+        title="Automações"
+        description="Crie regras automáticas que disparam quando algo acontece (ex: comentário no Instagram → DM)"
+        actions={
+          <button
+            onClick={() => router.push('/automations/new')}
+            className="inline-flex items-center gap-2 rounded-lg bg-white/15 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/20 hover:bg-white/25"
+          >
+            <Plus className="h-4 w-4" />
+            Nova automação
+          </button>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
