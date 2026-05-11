@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ReactFlow,
@@ -22,7 +23,6 @@ import {
   DEPARTMENT_COLORS,
 } from '../services/ai-agents.service';
 import { useOrgId } from '@/hooks/use-org-query-key';
-import { CreateAgentDialog } from './create-agent-dialog';
 import { EditAgentDialog } from './edit-agent-dialog';
 import { AgentNode, type AgentNodeData } from './agent-node';
 
@@ -113,10 +113,12 @@ function layoutOrganogram(agents: AiAgent[]): {
 
 export function AgentsList() {
   const orgId = useOrgId();
+  const router = useRouter();
   const queryClient = useQueryClient();
-  const [showCreate, setShowCreate] = useState(false);
   const [editing, setEditing] = useState<AiAgent | null>(null);
   const [deptFilter, setDeptFilter] = useState<string | null>(null);
+
+  const goNewAgent = () => router.push('/ai-agents/new');
 
   const { data: agents, isLoading } = useQuery({
     queryKey: ['ai-agents', orgId],
@@ -185,7 +187,7 @@ export function AgentsList() {
           </p>
         </div>
         <button
-          onClick={() => setShowCreate(true)}
+          onClick={goNewAgent}
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
@@ -276,7 +278,7 @@ export function AgentsList() {
                 ele passa a responder automaticamente.
               </p>
               <button
-                onClick={() => setShowCreate(true)}
+                onClick={goNewAgent}
                 className="mx-auto mt-4 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 <Plus className="h-3.5 w-3.5" />
@@ -287,11 +289,6 @@ export function AgentsList() {
         )}
       </div>
 
-      <CreateAgentDialog
-        open={showCreate}
-        onClose={() => setShowCreate(false)}
-        onCreated={refresh}
-      />
       <EditAgentDialog
         agent={editing}
         onClose={() => setEditing(null)}
