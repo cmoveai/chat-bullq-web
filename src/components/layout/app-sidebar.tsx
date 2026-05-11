@@ -11,6 +11,7 @@ import {
   CheckSquare,
   Briefcase,
   Zap,
+  BookOpen,
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
 import { JarvisTree } from '@/features/ai-agents/components/jarvis-tree';
@@ -43,6 +44,7 @@ const navItems = [
   { href: '/tasks', label: 'Tarefas', icon: CheckSquare },
   { href: '/offers', label: 'Ofertas', icon: Briefcase },
   { href: '/automations', label: 'Automações', icon: Zap },
+  { href: '/knowledge-bases', label: 'Bases de Conhecimento', icon: BookOpen },
 ];
 
 export function AppSidebar() {
