@@ -26,7 +26,7 @@ export default function PipelinesIndexPage() {
     setSaving(true);
     try {
       const p = await pipelinesService.create({ name: name.trim() });
-      toast.success(`Pipeline "${p.name}" criado com 5 stages padrão`);
+      toast.success(`Pipeline "${p.name}" criado com 15 stages padrão`);
       qc.invalidateQueries({ queryKey: ['pipelines'] });
       setName('');
       setCreating(false);
@@ -122,7 +122,7 @@ export default function PipelinesIndexPage() {
               Nenhum pipeline criado ainda
             </p>
             <p className="mt-1 text-xs text-zinc-400">
-              Click em "Novo pipeline" pra começar com 5 stages padrão.
+              Click em "Novo pipeline" pra começar com 15 stages padrão.
             </p>
           </div>
         )}
