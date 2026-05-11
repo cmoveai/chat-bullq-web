@@ -108,8 +108,27 @@ export function CreateChannelDialog({ open, onClose, onCreated }: CreateChannelD
   const submitChannel = async (type: ChannelType, name: string, config: Record<string, any>, webhookSecret?: string) => {
     setIsLoading(true);
     try {
-      await channelsService.create({ type, name, config, webhookSecret });
-      toast.success('Canal criado com sucesso!');
+      // 1. Cria o canal
+      const channel = await channelsService.create({ type, name, config, webhookSecret });
+
+      // 2. Auto-test contra Graph API · evita "canal fantasma" com token errado
+      try {
+        const test = await channelsService.testConnection(channel.id);
+        if (!test.success) {
+          // Test falhou · remove o canal pra não ficar fantasma
+          await channelsService.remove(channel.id, channel.name).catch(() => undefined);
+          toast.error(`Conexão falhou: ${test.error || 'verifique o token'} · canal removido, tente de novo.`);
+          return;
+        }
+        // Sucesso · mostra info do que conectou
+        const info = (test as { data?: { phoneNumber?: string; username?: string; verifiedName?: string } }).data || {};
+        const detail = info.phoneNumber || info.username || info.verifiedName || 'conectado';
+        toast.success(`Canal conectado: ${detail}`);
+      } catch (testErr) {
+        // Test crashou (ex: 500) · canal já existe mas não validado · cliente pode tentar manualmente
+        toast.warning(`Canal criado mas não validado: ${testErr instanceof Error ? testErr.message : 'erro desconhecido'} · use "Testar conexão" no canal.`);
+      }
+
       handleClose();
       onCreated();
     } catch (err) {

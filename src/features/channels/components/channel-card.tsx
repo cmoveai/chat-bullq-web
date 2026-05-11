@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
   MessageSquare,
   MoreVertical,
@@ -147,15 +148,26 @@ export function ChannelCard({ channel, onUpdate }: ChannelCardProps) {
           <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             {channel.name}
           </h3>
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-              channel.isActive
-                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'
-            }`}
-          >
-            {channel.isActive ? 'Ativo' : 'Inativo'}
-          </span>
+          <StatusBadge
+            kind={
+              isSyncFailed
+                ? 'error'
+                : isSyncRunning
+                  ? 'configuring'
+                  : channel.isActive
+                    ? 'live'
+                    : 'paused'
+            }
+            label={
+              isSyncFailed
+                ? 'Erro de sync'
+                : isSyncRunning
+                  ? 'Sincronizando'
+                  : channel.isActive
+                    ? 'Ativo'
+                    : 'Pausado'
+            }
+          />
           {channel.visibility === 'PRIVATE' && (
             <span
               title="Canal privado — só membros com permissão explícita enxergam, mesmo OWNER/ADMIN"

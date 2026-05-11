@@ -6,8 +6,8 @@ import { Providers } from '@/components/providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Chat BullQ',
-  description: 'Omnichannel customer service platform',
+  title: 'CMOVE.AI-ZAP',
+  description: 'CMOVE.AI · Atendimento omnichannel WhatsApp + Instagram com agents IA',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

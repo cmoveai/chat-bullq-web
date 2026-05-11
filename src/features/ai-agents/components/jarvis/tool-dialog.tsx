@@ -184,7 +184,7 @@ export function ToolDialog({ open, tool, onClose, onSaved }: Props) {
                   rows={5}
                   value={headersJson}
                   onChange={(e) => setHeadersJson(e.target.value)}
-                  placeholder='{"x-admin-api-key":"{{env.MEMBERS_ADMIN_KEY}}","x-tenant-id":"{{env.MEMBERS_TENANT_BRAVY}}","Content-Type":"application/json"}'
+                  placeholder='{"x-admin-api-key":"{{env.MEMBERS_ADMIN_KEY}}","x-tenant-id":"{{env.MEMBERS_TENANT_CMOVE}}","Content-Type":"application/json"}'
                   className="font-mono text-xs"
                 />
               </Field>

@@ -5,6 +5,7 @@ interface AuthUser {
   name: string;
   email: string;
   avatarUrl: string | null;
+  globalRole?: 'USER' | 'SUPER_ADMIN';
 }
 
 interface OrgInfo {

@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { Plus, Bot, MoreVertical, Trash2, Power, PowerOff } from 'lucide-react';
+import { Plus, Bot, MoreVertical, Trash2, Power, PowerOff, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { chatbotService, type ChatbotFlow } from '@/features/chatbot/services/chatbot.service';
 import { useOrgId } from '@/hooks/use-org-query-key';
+import { TemplatePicker } from '@/features/chatbot/components/template-picker';
 
 export default function ChatbotPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function ChatbotPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   const orgId = useOrgId();
   const { data: flows, isLoading } = useQuery({
@@ -65,13 +67,23 @@ export default function ChatbotPage() {
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Chatbot</h1>
           <p className="mt-1 text-sm text-zinc-500">Crie e gerencie fluxos de atendimento automático</p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" /> Novo Fluxo
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowTemplates(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+          >
+            <Sparkles className="h-4 w-4" /> Usar template
+          </button>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" /> Novo Fluxo
+          </button>
+        </div>
       </div>
+
+      <TemplatePicker open={showTemplates} onClose={() => setShowTemplates(false)} />
 
       {showCreate && (
         <div className="mt-6 rounded-xl border border-primary/20 bg-primary/5 p-4">

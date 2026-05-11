@@ -2,7 +2,8 @@
 
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Sparkles, Power, PowerOff } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { StatusBadge } from '@/components/ui/status-badge';
 import {
   type AiAgent,
   DEPARTMENT_COLORS,
@@ -80,27 +81,19 @@ function AgentNodeBase({ data }: { data: AgentNodeData }) {
               )}
             </div>
           </div>
-          <span
+          <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleActive(agent);
             }}
-            className={`inline-flex flex-shrink-0 cursor-pointer items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
-              agent.isActive
-                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-                : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800'
-            }`}
+            title={agent.isActive ? 'Clique pra pausar' : 'Clique pra ativar'}
+            className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
           >
-            {agent.isActive ? (
-              <>
-                <Power className="h-3 w-3" /> Ativo
-              </>
-            ) : (
-              <>
-                <PowerOff className="h-3 w-3" /> Pausado
-              </>
-            )}
-          </span>
+            <StatusBadge
+              kind={agent.isActive ? 'live' : 'paused'}
+              label={agent.isActive ? 'Ativo' : 'Pausado'}
+            />
+          </button>
         </div>
 
         {(agent.department || agent.squad) && (

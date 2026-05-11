@@ -163,4 +163,19 @@ export const pipelinesService = {
     });
     return data.data ?? data;
   },
+  async createCobrancaFromCard(
+    cardId: string,
+    input: {
+      vencimento?: string;
+      valor?: number;
+      etapa?: string;
+      pixChave?: string;
+      pixEmv?: string;
+      recorrente?: boolean;
+      recorrenciaDias?: number;
+    } = {},
+  ): Promise<{ id: string; slug: string }> {
+    const { data } = await api.post(`/pipelines/cards/${cardId}/cobrancas`, input);
+    return data.data ?? data;
+  },
 };

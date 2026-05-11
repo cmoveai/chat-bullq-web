@@ -17,6 +17,7 @@ interface AuthUser {
   name: string;
   email: string;
   avatarUrl: string | null;
+  globalRole?: 'USER' | 'SUPER_ADMIN';
 }
 
 interface OrgInfo {
@@ -64,5 +65,21 @@ export const authService = {
   async validateInvitation(token: string): Promise<InvitationInfo> {
     const { data } = await api.get<{ data: InvitationInfo }>(`/organizations/invitations/validate?token=${token}`);
     return data.data;
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    await api.post('/auth/forgot-password', { email });
+  },
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    await api.post('/auth/reset-password', { token, password });
+  },
+
+  async verifyEmail(token: string): Promise<void> {
+    await api.post('/auth/verify-email', { token });
+  },
+
+  async resendVerification(email: string): Promise<void> {
+    await api.post('/auth/resend-verification', { email });
   },
 };

@@ -2,6 +2,7 @@
 
 import {
   LayoutDashboard,
+  Home,
   Settings,
   LogOut,
   ChevronsUpDown,
@@ -34,6 +35,7 @@ import {
 } from '@/components/ui/dropdown';
 
 const navItems = [
+  { href: '/home', label: 'Início', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
@@ -80,15 +82,15 @@ export function AppSidebar() {
 
       <SidebarBody>
         <SidebarSection>
-          <InboxTree />
-          <PipelinesTree />
-          <JarvisTree />
           {navItems.map((item) => (
             <SidebarItem key={item.href} href={item.href}>
               <item.icon className="size-5" />
               <SidebarLabel>{item.label}</SidebarLabel>
             </SidebarItem>
           ))}
+          <InboxTree />
+          <PipelinesTree />
+          <JarvisTree />
         </SidebarSection>
 
         <SidebarSpacer />

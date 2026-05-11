@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getSupabaseAccessToken } from './supabase-browser';
 
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1',
@@ -6,9 +7,18 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('access_token');
+    // Prefere JWT do Supabase (Fase 5 SSO) · fallback no JWT próprio antigo.
+    let token: string | null = null;
+    try {
+      token = await getSupabaseAccessToken();
+    } catch {
+      // env Supabase ausente · ok, usa o legado
+    }
+    if (!token) {
+      token = localStorage.getItem('access_token');
+    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
