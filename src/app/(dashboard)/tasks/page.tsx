@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CheckSquare,
@@ -15,7 +15,6 @@ import {
   tasksService,
   type Task,
   type TaskStatus,
-  type TaskPriority,
   TASK_STATUS_LABEL,
   TASK_STATUS_COLOR,
   TASK_PRIORITY_LABEL,
@@ -24,7 +23,7 @@ import {
 
 export default function TasksPage() {
   const qc = useQueryClient();
-  const [creating, setCreating] = useState(false);
+  const router = useRouter();
 
   const statsQuery = useQuery({
     queryKey: ['tasks', 'stats'],
@@ -81,7 +80,7 @@ export default function TasksPage() {
           </p>
         </div>
         <button
-          onClick={() => setCreating(true)}
+          onClick={() => router.push('/tasks/new')}
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
@@ -102,7 +101,7 @@ export default function TasksPage() {
             Carregando tarefas...
           </div>
         ) : tasks.length === 0 ? (
-          <EmptyState onCreate={() => setCreating(true)} />
+          <EmptyState onCreate={() => router.push('/tasks/new')} />
         ) : (
           <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
             {tasks.map((t) => (
@@ -137,16 +136,6 @@ export default function TasksPage() {
           </ul>
         )}
       </div>
-
-      {creating && (
-        <CreateTaskDialog
-          onClose={() => setCreating(false)}
-          onCreated={() => {
-            setCreating(false);
-            qc.invalidateQueries({ queryKey: ['tasks'] });
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -183,71 +172,3 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-function CreateTaskDialog({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
-  const [dueDate, setDueDate] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-    setSaving(true);
-    try {
-      await tasksService.create({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        priority,
-        dueDate: dueDate || undefined,
-      });
-      toast.success('Tarefa criada');
-      onCreated();
-    } catch (err: any) {
-      toast.error(err?.message || 'Erro ao criar');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-lg bg-white p-6 dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">Nova tarefa</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">Título *</label>
-            <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Responder proposta" required className="w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100" />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">Descrição (opcional)</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">Prioridade</label>
-              <select value={priority} onChange={(e) => setPriority(e.target.value as TaskPriority)} className="w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
-                <option value="LOW">Baixa</option>
-                <option value="MEDIUM">Média</option>
-                <option value="HIGH">Alta</option>
-                <option value="URGENT">Urgente</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">Prazo</label>
-              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100" />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={onClose} className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
-              Cancelar
-            </button>
-            <button type="submit" disabled={saving || !title.trim()} className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-50">
-              {saving ? 'Criando...' : 'Criar tarefa'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
