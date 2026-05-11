@@ -122,12 +122,24 @@ export interface PaginatedResponse<T> {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
+export interface ConversationStats {
+  total: number;
+  resolved: number;
+  active: number;
+  humanControlled: number;
+}
+
 export const inboxService = {
   async getConversations(params?: Record<string, string>): Promise<{
     conversations: Conversation[];
     pagination: any;
   }> {
     const { data } = await api.get('/conversations', { params });
+    return data.data;
+  },
+
+  async getStats(): Promise<ConversationStats> {
+    const { data } = await api.get('/conversations/stats');
     return data.data;
   },
 

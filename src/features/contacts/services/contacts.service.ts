@@ -15,12 +15,24 @@ export interface Contact {
   createdAt: string;
 }
 
+export interface ContactStats {
+  total: number;
+  withEmail: number;
+  withPhone: number;
+  today: number;
+}
+
 export const contactsService = {
   async list(params?: Record<string, string>): Promise<{
     contacts: Contact[];
     pagination: { page: number; limit: number; total: number; totalPages: number };
   }> {
     const { data } = await api.get('/contacts', { params });
+    return data.data;
+  },
+
+  async stats(): Promise<ContactStats> {
+    const { data } = await api.get('/contacts/stats');
     return data.data;
   },
 

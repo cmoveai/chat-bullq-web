@@ -21,6 +21,7 @@ import {
   LayoutGrid,
   Magnet,
   Clock,
+  History,
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
 import { JarvisTree } from '@/features/ai-agents/components/jarvis-tree';
@@ -48,7 +49,7 @@ import {
 } from '@/components/ui/dropdown';
 
 const crmNav = [
-  { href: '/settings/contacts', label: 'Contatos', icon: Contact },
+  { href: '/contacts', label: 'Contatos', icon: Contact },
   { href: '/tasks', label: 'Tarefas', icon: CheckSquare },
   { href: '/offers', label: 'Ofertas', icon: Briefcase },
   { href: '/pipelines', label: 'Kanban', icon: KanbanSquare },
@@ -132,6 +133,14 @@ export function AppSidebar() {
             storageKey="nav-atendimentos-expanded"
             defaultExpanded={false}
           >
+            <SidebarItem href="/inbox">
+              <MessageSquare className="size-4" />
+              <SidebarLabel>Chat</SidebarLabel>
+            </SidebarItem>
+            <SidebarItem href="/inbox/all">
+              <History className="size-4" />
+              <SidebarLabel>Todas as Conversas</SidebarLabel>
+            </SidebarItem>
             <InboxTree />
           </NavGroup>
 
