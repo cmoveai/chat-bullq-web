@@ -2,7 +2,6 @@
 
 import {
   LayoutDashboard,
-  Home,
   Settings,
   LogOut,
   ChevronsUpDown,
@@ -15,10 +14,13 @@ import {
   Contact,
   MessageSquare,
   Bot,
+  KanbanSquare,
+  Users,
+  CreditCard,
+  User,
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
 import { JarvisTree } from '@/features/ai-agents/components/jarvis-tree';
-import { PipelinesTree } from '@/features/pipelines/components/pipelines-tree';
 import { NavGroup } from '@/components/layout/nav-group';
 
 import { useAuthStore } from '@/stores/auth-store';
@@ -42,19 +44,16 @@ import {
   DropdownDivider,
 } from '@/components/ui/dropdown';
 
-const topNav = [
-  { href: '/home', label: 'Início', icon: Home },
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-];
-
 const crmNav = [
   { href: '/settings/contacts', label: 'Contatos', icon: Contact },
   { href: '/tasks', label: 'Tarefas', icon: CheckSquare },
   { href: '/offers', label: 'Ofertas', icon: Briefcase },
+  { href: '/pipelines', label: 'Kanban', icon: KanbanSquare },
+  { href: '/pipelines', label: 'Pipelines', icon: KanbanSquare },
 ];
 
-const otherNav = [
-  { href: '/automations', label: 'Automações', icon: Zap },
+const automacoesNav = [
+  { href: '/automations', label: 'Minhas Automações', icon: Zap },
 ];
 
 export function AppSidebar() {
@@ -71,14 +70,19 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <Dropdown>
-          <DropdownButton className="flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-2.5 text-left text-sm/6 font-semibold text-zinc-950 hover:bg-zinc-950/5 dark:text-white dark:hover:bg-white/5">
+          <DropdownButton className="flex w-full min-w-0 items-center gap-3 rounded-lg px-2 py-2.5 text-left hover:bg-zinc-950/5 dark:hover:bg-white/5">
             <Avatar
               initials={activeOrg?.name?.slice(0, 2).toUpperCase()}
-              className="size-6 bg-primary text-[10px] text-primary-foreground"
+              className="size-9 bg-primary text-xs text-primary-foreground"
               square
             />
-            <span className="min-w-0 flex-1 truncate">
-              {activeOrg?.name ?? 'Organização'}
+            <span className="min-w-0 flex-1">
+              <span className="block text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                Workspace
+              </span>
+              <span className="block truncate text-sm font-semibold text-zinc-950 dark:text-white">
+                {activeOrg?.name ?? 'Meu Workspace'}
+              </span>
             </span>
             <ChevronsUpDown className="ml-auto size-4 shrink-0 text-zinc-500" />
           </DropdownButton>
@@ -100,49 +104,72 @@ export function AppSidebar() {
 
       <SidebarBody>
         <SidebarSection>
-          {topNav.map((item) => (
-            <SidebarItem key={item.href} href={item.href}>
-              <item.icon className="size-5" />
-              <SidebarLabel>{item.label}</SidebarLabel>
-            </SidebarItem>
-          ))}
+          <SidebarItem href="/dashboard">
+            <LayoutDashboard className="size-5" />
+            <SidebarLabel>Painel</SidebarLabel>
+          </SidebarItem>
         </SidebarSection>
 
         <SidebarSection>
           <NavGroup label="CRM" icon={Contact} storageKey="nav-crm-expanded">
             {crmNav.map((item) => (
-              <SidebarItem key={item.href} href={item.href}>
+              <SidebarItem key={item.label} href={item.href}>
                 <item.icon className="size-4" />
                 <SidebarLabel>{item.label}</SidebarLabel>
               </SidebarItem>
             ))}
-            <PipelinesTree />
           </NavGroup>
 
           <NavGroup
             label="Atendimentos"
             icon={MessageSquare}
             storageKey="nav-atendimentos-expanded"
+            defaultExpanded={false}
           >
             <InboxTree />
           </NavGroup>
 
-          <NavGroup label="Agentes" icon={Bot} storageKey="nav-agentes-expanded">
+          <NavGroup
+            label="Agentes"
+            icon={Bot}
+            storageKey="nav-agentes-expanded"
+            defaultExpanded={false}
+          >
             <JarvisTree />
             <SidebarItem href="/knowledge-bases">
               <BookOpen className="size-4" />
               <SidebarLabel>Bases de Conhecimento</SidebarLabel>
             </SidebarItem>
           </NavGroup>
+
+          <NavGroup
+            label="Automações"
+            icon={Zap}
+            storageKey="nav-automacoes-expanded"
+            defaultExpanded={false}
+          >
+            {automacoesNav.map((item) => (
+              <SidebarItem key={item.href} href={item.href}>
+                <item.icon className="size-4" />
+                <SidebarLabel>{item.label}</SidebarLabel>
+              </SidebarItem>
+            ))}
+          </NavGroup>
         </SidebarSection>
 
         <SidebarSection>
-          {otherNav.map((item) => (
-            <SidebarItem key={item.href} href={item.href}>
-              <item.icon className="size-5" />
-              <SidebarLabel>{item.label}</SidebarLabel>
-            </SidebarItem>
-          ))}
+          <SidebarItem href="/settings/members">
+            <Users className="size-5" />
+            <SidebarLabel>Minha Equipe</SidebarLabel>
+          </SidebarItem>
+          <SidebarItem href="/settings">
+            <CreditCard className="size-5" />
+            <SidebarLabel>Planos</SidebarLabel>
+          </SidebarItem>
+          <SidebarItem href="/settings">
+            <User className="size-5" />
+            <SidebarLabel>Perfil</SidebarLabel>
+          </SidebarItem>
         </SidebarSection>
 
         <SidebarSpacer />
