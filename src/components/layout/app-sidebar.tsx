@@ -177,14 +177,50 @@ export function AppSidebar() {
             <Users className="size-5" />
             <SidebarLabel>Minha Equipe</SidebarLabel>
           </SidebarItem>
-          <SidebarItem href="/settings">
-            <CreditCard className="size-5" />
-            <SidebarLabel>Planos</SidebarLabel>
-          </SidebarItem>
-          <SidebarItem href="/settings">
-            <User className="size-5" />
-            <SidebarLabel>Perfil</SidebarLabel>
-          </SidebarItem>
+
+          <NavGroup
+            label="Planos"
+            icon={CreditCard}
+            storageKey="nav-planos-expanded"
+            defaultExpanded={false}
+          >
+            <SidebarItem href="/plans">
+              <CreditCard className="size-4" />
+              <SidebarLabel>Planos</SidebarLabel>
+            </SidebarItem>
+            <SidebarItem href="/plans/manage">
+              <Settings className="size-4" />
+              <SidebarLabel>Gerenciar Assinatura</SidebarLabel>
+            </SidebarItem>
+          </NavGroup>
+
+          <NavGroup
+            label="Perfil"
+            icon={User}
+            storageKey="nav-perfil-expanded"
+            defaultExpanded={false}
+          >
+            <SidebarItem href="/profile">
+              <User className="size-4" />
+              <SidebarLabel>Meu Perfil</SidebarLabel>
+            </SidebarItem>
+            <SidebarItem href="/profile/edit">
+              <User className="size-4" />
+              <SidebarLabel>Editar Perfil</SidebarLabel>
+            </SidebarItem>
+            <SidebarItem href="/profile/emails">
+              <User className="size-4" />
+              <SidebarLabel>Endereços de Email</SidebarLabel>
+            </SidebarItem>
+            <SidebarItem href="/profile/password">
+              <User className="size-4" />
+              <SidebarLabel>Alterar Senha</SidebarLabel>
+            </SidebarItem>
+            <SidebarItem href="/profile/2fa">
+              <User className="size-4" />
+              <SidebarLabel>Autenticação de Dois Fatores</SidebarLabel>
+            </SidebarItem>
+          </NavGroup>
         </SidebarSection>
 
         <SidebarSpacer />
