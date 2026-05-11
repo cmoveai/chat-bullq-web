@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   ArrowDown,
@@ -54,6 +54,7 @@ const STATUS_OPTIONS: {
 
 export default function NewTaskPage() {
   const router = useRouter();
+  const qc = useQueryClient();
 
   // form state
   const [title, setTitle] = useState('');
@@ -98,6 +99,7 @@ export default function NewTaskPage() {
         dueDate: dueDate || undefined,
       });
       toast.success('Tarefa criada');
+      await qc.invalidateQueries({ queryKey: ['tasks'] });
       router.push('/tasks');
     } catch (err: any) {
       toast.error(err?.message || 'Erro ao criar tarefa');
