@@ -174,7 +174,7 @@ export default function KnowledgeBasesPage() {
   );
 }
 
-function CreateTextDialog({ onClose }: { onClose: () => void }) {
+export function CreateTextDialog({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -285,7 +285,7 @@ function CreateTextDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-function UploadDialog({ onClose }: { onClose: () => void }) {
+export function UploadDialog({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState('');
