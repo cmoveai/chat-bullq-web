@@ -24,7 +24,6 @@ import {
   History,
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
-import { JarvisTree } from '@/features/ai-agents/components/jarvis-tree';
 import { NavGroup } from '@/components/layout/nav-group';
 
 import { useAuthStore } from '@/stores/auth-store';
@@ -150,7 +149,10 @@ export function AppSidebar() {
             storageKey="nav-agentes-expanded"
             defaultExpanded={false}
           >
-            <JarvisTree />
+            <SidebarItem href="/ai-agents">
+              <Bot className="size-4" />
+              <SidebarLabel>Agentes</SidebarLabel>
+            </SidebarItem>
             <SidebarItem href="/knowledge-bases">
               <BookOpen className="size-4" />
               <SidebarLabel>Bases de Conhecimento</SidebarLabel>

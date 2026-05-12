@@ -24,8 +24,9 @@ const VALID_TABS: Tab[] = ['overview', 'agents', 'skills', 'tools', 'runs', 'age
 
 export default function AiAgentsPage() {
   const searchParams = useSearchParams();
-  const raw = (searchParams.get('tab') ?? 'overview') as Tab;
-  const tab: Tab = VALID_TABS.includes(raw) ? raw : 'overview';
+  // Jarvis dashboard desabilitado · default agora é a lista de agentes.
+  const raw = (searchParams.get('tab') ?? 'agents') as Tab;
+  const tab: Tab = VALID_TABS.includes(raw) ? raw : 'agents';
   const meta = TAB_META[tab];
   const Icon = meta.icon;
 
