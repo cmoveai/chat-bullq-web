@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   ArrowDownRight,
@@ -21,6 +22,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { api } from '@/lib/api';
 import {
   expenseBreakdown,
   recentTransactions,
@@ -30,6 +32,11 @@ import {
   type RecentTransaction,
 } from '../../_mocks/financial';
 import { HeroCard } from '../../_components/hero-card';
+
+interface MrrHistoryResp {
+  days: number;
+  series: Array<{ date: string; mrrBrl: number; activeSubs: number; trialSubs: number }>;
+}
 
 function formatBrl(value: number) {
   return new Intl.NumberFormat('pt-BR', {
@@ -51,7 +58,30 @@ function formatBrlCompact(value: number) {
 
 export default function AnalyticsPage() {
   const [range, setRange] = useState<'7d' | '30d'>('30d');
-  const series = range === '7d' ? revenueGrowth7d : revenueGrowth30d;
+  const days = range === '7d' ? 7 : 30;
+
+  const { data: mrrHist } = useQuery<MrrHistoryResp>({
+    queryKey: ['super-admin', 'mrr-history', days],
+    queryFn: async () => {
+      const res = await api.get<{ data: MrrHistoryResp }>(
+        `/super-admin/analytics/mrr-history?days=${days}`,
+      );
+      return (res.data as any).data ?? res.data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  // Série real quando tem dados · senão mock
+  const realSeries = mrrHist?.series.map((p) => ({
+    label: p.date.slice(8, 10) + '/' + p.date.slice(5, 7),
+    amountBrl: p.mrrBrl,
+  }));
+  const hasReal = !!realSeries && realSeries.some((p) => p.amountBrl > 0);
+  const series = hasReal
+    ? realSeries!
+    : range === '7d'
+      ? revenueGrowth7d
+      : revenueGrowth30d;
   const seriesTotal = series.reduce((s, p) => s + p.amountBrl, 0);
   const peak = series.reduce(
     (acc, p) => (p.amountBrl > acc.amountBrl ? p : acc),

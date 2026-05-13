@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   Download,
@@ -7,8 +8,33 @@ import {
   ArrowDownRight,
   ArrowUpRight,
 } from 'lucide-react';
+import { api } from '@/lib/api';
 import { financialMock } from '../../_mocks/financial';
 import { HeroCard } from '../../_components/hero-card';
+
+interface InvoiceSummary {
+  paidThisMonthBrl: number;
+  paidThisMonthCount: number;
+  paidPrevMonthBrl: number;
+  openBrl: number;
+  openCount: number;
+  overdueBrl: number;
+  overdueCount: number;
+}
+
+interface InvoicesResponse {
+  data: Array<{
+    id: string;
+    amountBrl: number;
+    status: string;
+    dueDate: string;
+    paidAt: string | null;
+    organization: { id: string; name: string; slug: string };
+    plan: { code: string; name: string } | null;
+  }>;
+  total: number;
+  summary: InvoiceSummary;
+}
 
 function formatBrl(value: number) {
   return new Intl.NumberFormat('pt-BR', {
@@ -27,6 +53,29 @@ function formatBrlCompact(value: number) {
 
 export default function FinanceiroPage() {
   const m = financialMock;
+
+  const { data: invoicesResp } = useQuery<InvoicesResponse>({
+    queryKey: ['super-admin', 'invoices'],
+    queryFn: async () => {
+      const res = await api.get<{ data: InvoicesResponse }>('/super-admin/invoices?limit=20');
+      return (res.data as any).data ?? res.data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  const summary = invoicesResp?.summary;
+  const usingReal = !!summary && summary.paidThisMonthBrl > 0;
+
+  const inflowsDisplay = summary?.paidThisMonthBrl ?? m.inflowsBrl;
+  const trendPct =
+    summary && summary.paidPrevMonthBrl > 0
+      ? Math.round(
+          ((summary.paidThisMonthBrl - summary.paidPrevMonthBrl) /
+            summary.paidPrevMonthBrl) *
+            100,
+        )
+      : 18;
+  const receivable7d = (summary?.openBrl ?? 0) + (summary?.overdueBrl ?? 0);
 
   return (
     <div className="space-y-5">
@@ -64,14 +113,14 @@ export default function FinanceiroPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiPill
-          label="Saldo do mês"
-          value={formatBrl(m.marginBrl)}
-          trend={{ direction: 'up', pct: '18%' }}
+          label={usingReal ? 'Recebido este mês (real)' : 'Saldo do mês'}
+          value={formatBrl(usingReal ? inflowsDisplay : m.marginBrl)}
+          trend={{ direction: trendPct >= 0 ? 'up' : 'down', pct: `${Math.abs(trendPct)}%` }}
         />
         <KpiPill
           label="Entradas"
-          value={formatBrl(m.inflowsBrl)}
-          trend={{ direction: 'up', pct: '18%' }}
+          value={formatBrl(usingReal ? inflowsDisplay : m.inflowsBrl)}
+          trend={{ direction: 'up', pct: usingReal ? `${trendPct}%` : '18%' }}
         />
         <KpiPill
           label="Saídas"
@@ -79,9 +128,9 @@ export default function FinanceiroPage() {
           trend={{ direction: 'down', pct: '5%', positive: true }}
         />
         <KpiPill
-          label="A receber 7d"
-          value={formatBrl(1794)}
-          trend={{ direction: 'up', pct: '6%' }}
+          label="A receber"
+          value={formatBrl(usingReal ? receivable7d : 1794)}
+          trend={{ direction: 'up', pct: usingReal ? `${summary?.openCount ?? 0} abertas` : '6%' }}
         />
       </div>
 

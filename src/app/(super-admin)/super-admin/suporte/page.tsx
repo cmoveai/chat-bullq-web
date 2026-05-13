@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ChevronRight, LifeBuoy, Plus } from 'lucide-react';
+import { api } from '@/lib/api';
 import { ticketsMock, type Ticket, type TicketStatus } from '../../_mocks/tickets';
 import { TicketDrawer } from '../../_components/ticket-drawer';
 import { HeroCard } from '../../_components/hero-card';
@@ -19,28 +21,119 @@ const SLA_DOT: Record<'green' | 'yellow' | 'red', string> = {
   red: 'bg-red-500',
 };
 
+interface BackendTicket {
+  id: string;
+  category: string;
+  briefing: string;
+  priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+  customerEmail: string | null;
+  customerPhone: string | null;
+  organization: { id: string; name: string; slug: string };
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+interface TicketsResponse {
+  data: BackendTicket[];
+  total: number;
+  summary: { openCount: number; urgentOpenCount: number };
+}
+
+function deriveSla(hours: number): 'green' | 'yellow' | 'red' {
+  if (hours < 4) return 'green';
+  if (hours < 24) return 'yellow';
+  return 'red';
+}
+
+function relativeTime(iso: string): { rel: string; hours: number } {
+  const ms = Date.now() - new Date(iso).getTime();
+  const hours = Math.floor(ms / 3600_000);
+  if (hours < 1) return { rel: `${Math.floor(ms / 60_000)}m`, hours: 0 };
+  if (hours < 24) return { rel: `${hours}h`, hours };
+  const days = Math.floor(hours / 24);
+  return { rel: `${days}d`, hours };
+}
+
+function mapStatus(s: BackendTicket['status']): TicketStatus {
+  switch (s) {
+    case 'RESOLVED':
+    case 'CLOSED':
+      return 'resolved';
+    case 'IN_PROGRESS':
+      return 'pending_customer';
+    case 'OPEN':
+    default:
+      return 'open';
+  }
+}
+
+function mapBackendTicket(t: BackendTicket): Ticket {
+  const { rel, hours } = relativeTime(t.createdAt);
+  return {
+    id: '#' + t.id.slice(-4),
+    customerName: t.organization.name,
+    customerId: t.organization.slug,
+    subject: t.briefing.slice(0, 80),
+    openedRelative: rel,
+    openedHours: hours,
+    sla: deriveSla(hours),
+    status: mapStatus(t.status),
+    thread: [
+      {
+        from: 'customer',
+        authorName: t.customerEmail ?? 'Cliente',
+        body: t.briefing,
+        sentAtRelative: rel + ' atrás',
+      },
+    ],
+  };
+}
+
 export default function SuportePage() {
   const [tab, setTab] = useState<TicketStatus>('open');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const { data: ticketsResp } = useQuery<TicketsResponse>({
+    queryKey: ['super-admin', 'support-tickets'],
+    queryFn: async () => {
+      const res = await api.get<{ data: TicketsResponse }>(
+        '/super-admin/support-tickets?limit=200',
+      );
+      return (res.data as any).data ?? res.data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  const baseTickets: Ticket[] = ticketsResp?.data?.length
+    ? ticketsResp.data.map(mapBackendTicket)
+    : ticketsMock;
+  const usingReal = !!ticketsResp?.data?.length;
+
   const counts = useMemo(() => {
     return {
-      open: ticketsMock.filter((t) => t.status === 'open').length,
-      pending_customer: ticketsMock.filter((t) => t.status === 'pending_customer').length,
-      resolved: ticketsMock.filter((t) => t.status === 'resolved').length,
+      open: baseTickets.filter((t) => t.status === 'open').length,
+      pending_customer: baseTickets.filter((t) => t.status === 'pending_customer').length,
+      resolved: baseTickets.filter((t) => t.status === 'resolved').length,
     };
-  }, []);
+  }, [baseTickets]);
 
   const filtered = useMemo(() => {
-    return ticketsMock
+    return baseTickets
       .filter((t) => t.status === tab)
       .sort((a, b) => b.openedHours - a.openedHours);
-  }, [tab]);
+  }, [tab, baseTickets]);
 
-  const selected = selectedId ? ticketsMock.find((t) => t.id === selectedId) ?? null : null;
-  const resolvedToday = 8;
-  const slaBreaches = ticketsMock.filter((t) => t.sla === 'red' && t.status !== 'resolved').length;
-  const avgResponseHours = 3.2;
+  const selected = selectedId ? baseTickets.find((t) => t.id === selectedId) ?? null : null;
+  const resolvedToday = baseTickets.filter((t) => t.status === 'resolved').length;
+  const slaBreaches = baseTickets.filter((t) => t.sla === 'red' && t.status !== 'resolved').length;
+  const avgResponseHours = usingReal
+    ? Math.round(
+        (baseTickets.reduce((sum, t) => sum + t.openedHours, 0) /
+          Math.max(1, baseTickets.length)) *
+          10,
+      ) / 10
+    : 3.2;
 
   return (
     <>
