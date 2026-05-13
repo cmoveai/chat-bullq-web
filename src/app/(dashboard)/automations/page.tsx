@@ -11,6 +11,7 @@ import {
   Instagram,
   MessageCircle,
   Hash,
+  GitBranch,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -197,6 +198,13 @@ export default function AutomationsPage() {
                         : ''}
                     </p>
                   </div>
+                  <button
+                    onClick={() => router.push(`/automations/builder/${a.id}`)}
+                    className="text-zinc-400 hover:text-blue-600"
+                    title="Abrir construtor visual"
+                  >
+                    <GitBranch className="h-4 w-4" />
+                  </button>
                   <button
                     onClick={() => handleToggle(a)}
                     className="text-zinc-400 hover:text-emerald-600"
