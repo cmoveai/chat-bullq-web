@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { membersService, type Member } from '@/features/settings/services/members.service';
 import { useOrgId } from '@/hooks/use-org-query-key';
 import { MemberChannelsDrawer } from '@/features/settings/components/member-channels-drawer';
+import { handleApiError } from '@/features/billing/plan-error-handler';
 
 const roleLabels: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   OWNER: { label: 'Proprietário', icon: ShieldCheck, color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400' },
@@ -46,7 +47,7 @@ export default function SettingsMembersPage() {
         toast.success('Convite criado! Compartilhe o link com o membro.');
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao convidar');
+      handleApiError(err, 'Erro ao convidar');
     } finally {
       setInviting(false);
     }

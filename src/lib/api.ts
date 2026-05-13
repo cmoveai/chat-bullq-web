@@ -53,7 +53,51 @@ api.interceptors.response.use(
         }
       }
     }
-    const message = error.response?.data?.message || error.message;
-    return Promise.reject(new Error(Array.isArray(message) ? message[0] : message));
+    const data = error.response?.data ?? {};
+    const message = data.message || error.message;
+    // Cria Error custom preservando payload estruturado (code/kind/limit/used/planCode/planName)
+    // pra UX de paywall poder ler. Backend manda esses campos quando lança
+    // HttpException({ code: 'PLAN_LIMIT_REACHED', ...}) graças ao GlobalExceptionFilter
+    // que dá spread em exceptionResponse.
+    const err: any = new Error(Array.isArray(message) ? message[0] : message);
+    err.status = error.response?.status;
+    err.code = data.code;
+    err.kind = data.kind;
+    err.limit = data.limit;
+    err.used = data.used;
+    err.budgetCents = data.budgetCents;
+    err.spentCents = data.spentCents;
+    err.planCode = data.planCode;
+    err.planName = data.planName;
+    err.raw = data;
+    return Promise.reject(err);
   },
 );
+
+/** Type helper · checa se um erro é um plan limit/budget vindo do backend. */
+export type PlanErrorCode =
+  | 'PLAN_LIMIT_REACHED'
+  | 'PLAN_LIMIT_MONTHLY_REACHED'
+  | 'PLAN_LLM_BUDGET_REACHED';
+
+export interface PlanError extends Error {
+  status: number;
+  code: PlanErrorCode;
+  kind?: string;
+  limit?: number;
+  used?: number;
+  budgetCents?: number;
+  spentCents?: number;
+  planCode?: string;
+  planName?: string;
+}
+
+export function isPlanError(err: unknown): err is PlanError {
+  if (!err || typeof err !== 'object') return false;
+  const code = (err as any).code;
+  return (
+    code === 'PLAN_LIMIT_REACHED' ||
+    code === 'PLAN_LIMIT_MONTHLY_REACHED' ||
+    code === 'PLAN_LLM_BUDGET_REACHED'
+  );
+}

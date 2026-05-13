@@ -6,6 +6,7 @@ import { Bot, ArrowLeft, ArrowRight, Loader2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/ui/page-header';
 import { aiAgentsService } from '@/features/ai-agents/services/ai-agents.service';
+import { handleApiError } from '@/features/billing/plan-error-handler';
 import { knowledgeBasesService } from '@/features/knowledge-bases/services/knowledge-bases.service';
 import { WizardStepper } from '@/features/ai-agents/components/wizard/wizard-stepper';
 import { StepBasicInfo } from '@/features/ai-agents/components/wizard/step-basic-info';
@@ -135,8 +136,8 @@ export default function NewAgentPage() {
 
       toast.success(`Agente "${agent.name}" criado`);
       router.push('/ai-agents?tab=agents');
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao criar agente');
+    } catch (err) {
+      handleApiError(err, 'Erro ao criar agente');
     } finally {
       setSaving(false);
     }

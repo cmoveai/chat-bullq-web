@@ -10,6 +10,7 @@ import { Loader2, X, Copy, Check, Lock } from 'lucide-react';
 import { channelsService, type ChannelType } from '../services/channels.service';
 import { ZappfyIcon, MetaIcon, InstagramIcon } from '@/components/ui/icons';
 import { useFeatures } from '@/features/billing/hooks/use-features';
+import { handleApiError } from '@/features/billing/plan-error-handler';
 
 const channelTypes: { value: ChannelType; label: string; icon: React.ElementType; color: string; description: string }[] = [
   {
@@ -140,7 +141,7 @@ export function CreateChannelDialog({ open, onClose, onCreated }: CreateChannelD
       handleClose();
       onCreated();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao criar canal');
+      handleApiError(err, 'Erro ao criar canal');
     } finally {
       setIsLoading(false);
     }
