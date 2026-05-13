@@ -24,6 +24,30 @@ interface SuperAdminKpis {
   totalUsers: number;
   messagesToday: number;
   activeChannels: number;
+  mrrBrl: number;
+  llmCostMonthUsd: number;
+  activeSubs: number;
+  trialingSubs: number;
+  pastDueSubs: number;
+}
+
+interface OrgListItem {
+  id: string;
+  name: string;
+  slug: string;
+  members: number;
+  channels: number;
+  subscription: {
+    status: string;
+    planCode: string;
+    planName?: string;
+    priceMonthlyCents?: number;
+  } | null;
+}
+
+interface OrgListResponse {
+  data: OrgListItem[];
+  total: number;
 }
 
 function formatBrl(value: number) {
@@ -96,9 +120,47 @@ export default function SuperAdminVisaoGeralPage() {
     refetchInterval: 30_000,
   });
 
+  const { data: orgsResp } = useQuery<OrgListResponse>({
+    queryKey: ['super-admin', 'orgs', 'all'],
+    queryFn: async () => {
+      const res = await api.get<{ data: OrgListResponse }>(
+        '/super-admin/orgs?limit=200',
+      );
+      // backend retorna { data: { data: [...], total } } · interceptor já
+      // desempilha 1 nível, sobra o envelope interno do service.
+      return (res.data as any).data ?? res.data;
+    },
+    refetchInterval: 60_000,
+  });
+
   const m = overviewMock;
-  const goalPct = Math.min(100, Math.round((m.kpis.mrrBrl / MARGIN_GOAL) * 100));
-  const donutData = m.planDistribution.map((p, i) => ({
+
+  // Real values quando disponíveis · fallback pro mock pra UI não quebrar
+  const mrrReal = realKpis?.mrrBrl;
+  const mrrDisplay = mrrReal ?? m.kpis.mrrBrl;
+  const subsReal = realKpis ? realKpis.activeSubs + realKpis.trialingSubs : undefined;
+  const subsDisplay = subsReal ?? m.kpis.activeSubscribers;
+  const usingRealMrr = mrrReal !== undefined && mrrReal > 0;
+
+  // Plan distribution calculada a partir das orgs reais
+  const realDistribution = orgsResp?.data
+    ? Object.entries(
+        orgsResp.data.reduce<Record<string, number>>((acc, o) => {
+          const code = o.subscription?.planCode ?? 'NONE';
+          acc[code] = (acc[code] ?? 0) + 1;
+          return acc;
+        }, {}),
+      )
+        .map(([plan, count]) => ({ plan, count }))
+        .sort((a, b) => b.count - a.count)
+    : null;
+
+  const goalPct = Math.min(100, Math.round((mrrDisplay / MARGIN_GOAL) * 100));
+  const donutData = (
+    realDistribution && realDistribution.length > 0
+      ? realDistribution
+      : m.planDistribution.map((p) => ({ plan: p.plan, count: p.count }))
+  ).map((p, i) => ({
     name: p.plan,
     value: p.count,
     color: DONUT_COLORS[i] ?? '#71717a',
@@ -119,12 +181,13 @@ export default function SuperAdminVisaoGeralPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr] gap-4">
         <HeroMrrCard
-          mrr={m.kpis.mrrBrl}
-          subscribers={m.kpis.activeSubscribers}
+          mrr={mrrDisplay}
+          subscribers={subsDisplay}
           newCount={m.kpis.newSubscribers30d}
           series={m.mrrSeries}
+          isReal={usingRealMrr}
         />
-        <GoalCard mrr={m.kpis.mrrBrl} goal={MARGIN_GOAL} pct={goalPct} />
+        <GoalCard mrr={mrrDisplay} goal={MARGIN_GOAL} pct={goalPct} />
       </div>
 
       <section>
@@ -171,20 +234,22 @@ export default function SuperAdminVisaoGeralPage() {
       </section>
 
       <RevenueGrowthCard
-        mrr={m.kpis.mrrBrl}
+        mrr={mrrDisplay}
         trendPct={m.kpis.mrrTrendPct}
         series={m.mrrSeries}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-4">
         <AttentionPanel items={m.attention} />
-        <DistributionPanel data={donutData} total={m.kpis.activeSubscribers} />
+        <DistributionPanel data={donutData} total={subsDisplay} />
       </div>
 
       {realKpis && (
         <div className="text-[11px] text-zinc-400 dark:text-zinc-600 text-center pt-2">
           Banco real · {realKpis.totalOrgs} orgs · {realKpis.totalUsers} users ·{' '}
-          {realKpis.messagesToday} msgs hoje · {realKpis.activeChannels} canais ativos
+          {realKpis.messagesToday} msgs hoje · {realKpis.activeChannels} canais ·{' '}
+          {realKpis.activeSubs} ACTIVE / {realKpis.trialingSubs} TRIAL /{' '}
+          {realKpis.pastDueSubs} PAST_DUE · LLM {realKpis.llmCostMonthUsd.toFixed(2)} USD mês
         </div>
       )}
     </div>
@@ -196,11 +261,13 @@ function HeroMrrCard({
   subscribers,
   newCount,
   series,
+  isReal,
 }: {
   mrr: number;
   subscribers: number;
   newCount: number;
   series: number[];
+  isReal: boolean;
 }) {
   return (
     <div className="relative rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 dark:from-zinc-950 dark:via-zinc-900 dark:to-black p-7 text-zinc-100 overflow-hidden">
@@ -212,9 +279,15 @@ function HeroMrrCard({
           <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-400 font-medium">
             Conta principal · CMOVE.AI-ZAP
           </div>
-          <span className="text-[10px] uppercase tracking-[0.14em] text-amber-400 font-semibold border border-amber-700/60 rounded px-1.5 py-0.5">
-            mock
-          </span>
+          {isReal ? (
+            <span className="text-[10px] uppercase tracking-[0.14em] text-emerald-400 font-semibold border border-emerald-700/60 rounded px-1.5 py-0.5">
+              real
+            </span>
+          ) : (
+            <span className="text-[10px] uppercase tracking-[0.14em] text-amber-400 font-semibold border border-amber-700/60 rounded px-1.5 py-0.5">
+              mock
+            </span>
+          )}
         </div>
 
         <div className="text-xs text-zinc-400 mb-3">MRR · receita recorrente mensal</div>
