@@ -1,10 +1,54 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Pencil, Plus, Layers } from 'lucide-react';
+import { api } from '@/lib/api';
 import { plansMock, FUNNEL_30D, type PlanMock } from '../../_mocks/plans';
 import { Sparkline } from '../../_components/sparkline';
 import { HeroCard } from '../../_components/hero-card';
+
+interface BackendPlan {
+  code: string;
+  name: string;
+  priceMonthlyCents: number;
+  maxChannels: number | null;
+  maxAgents: number | null;
+  maxConversationsMonth: number | null;
+}
+
+interface OrgListItem {
+  id: string;
+  subscription: { status: string; planCode: string; priceMonthlyCents?: number } | null;
+}
+
+function mapBackendPlan(
+  p: BackendPlan,
+  subscribers: number,
+  mrrBrl: number,
+  isMostSold: boolean,
+): PlanMock | null {
+  // Apenas Starter/Growth/Pro são planos comerciais · ignorar SOLO/TIME/etc legados
+  const allowed: PlanMock['name'][] = ['Starter', 'Growth', 'Pro'];
+  const name = p.name as PlanMock['name'];
+  if (!allowed.includes(name)) return null;
+  return {
+    name,
+    priceBrl: p.priceMonthlyCents / 100,
+    isMostSold,
+    subscribers,
+    mrrBrl,
+    marginPct: 0,
+    marginStatus: 'good',
+    churn30dPct: 0,
+    trend30d: [subscribers],
+    limits: {
+      channels: p.maxChannels ?? 'unlimited',
+      agents: p.maxAgents ?? 'unlimited',
+      monthlyConversations: p.maxConversationsMonth ?? 'unlimited',
+    },
+  };
+}
 
 function formatBrl(value: number) {
   return new Intl.NumberFormat('pt-BR', {
@@ -31,9 +75,68 @@ const MARGIN_ICON: Record<'good' | 'warn' | 'bad', string> = {
 };
 
 export default function PlanosPage() {
+  const { data: backendPlans } = useQuery<BackendPlan[]>({
+    queryKey: ['plans', 'public'],
+    queryFn: async () => {
+      const res = await api.get<{ data: BackendPlan[] }>('/billing/plans');
+      return res.data.data;
+    },
+  });
+
+  const { data: orgsResp } = useQuery<{ data: OrgListItem[]; total: number }>({
+    queryKey: ['super-admin', 'orgs', 'all'],
+    queryFn: async () => {
+      const res = await api.get<{ data: { data: OrgListItem[]; total: number } }>(
+        '/super-admin/orgs?limit=200',
+      );
+      return (res.data as any).data ?? res.data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  // Agrupa orgs por planCode pra contar subscribers + MRR real
+  const byPlan = new Map<string, { count: number; mrr: number }>();
+  for (const o of orgsResp?.data ?? []) {
+    const isPaying = o.subscription?.status === 'ACTIVE' || o.subscription?.status === 'TRIAL';
+    if (!isPaying) continue;
+    const code = o.subscription?.planCode ?? '?';
+    const price = (o.subscription?.priceMonthlyCents ?? 0) / 100;
+    const cur = byPlan.get(code) ?? { count: 0, mrr: 0 };
+    cur.count += 1;
+    cur.mrr += o.subscription?.status === 'ACTIVE' ? price : 0;
+    byPlan.set(code, cur);
+  }
+
+  // Identifica mais vendido
+  let topCode = '';
+  let topCount = -1;
+  for (const [code, stats] of byPlan) {
+    if (stats.count > topCount) {
+      topCount = stats.count;
+      topCode = code;
+    }
+  }
+
+  const realPlans: PlanMock[] = (backendPlans ?? [])
+    .map((p) =>
+      mapBackendPlan(
+        p,
+        byPlan.get(p.code)?.count ?? 0,
+        byPlan.get(p.code)?.mrr ?? 0,
+        p.code === topCode && topCount > 0,
+      ),
+    )
+    .filter((x): x is PlanMock => x !== null);
+
+  const usingReal = realPlans.length > 0;
+  const displayedPlans = usingReal ? realPlans : plansMock;
+
   const conversionPct = Math.round((FUNNEL_30D.paying / FUNNEL_30D.trialsStarted) * 100);
-  const topPlan = plansMock.reduce((acc, p) => (p.subscribers > acc.subscribers ? p : acc), plansMock[0]);
-  const totalMrr = plansMock.reduce((sum, p) => sum + p.mrrBrl, 0);
+  const topPlan = displayedPlans.reduce(
+    (acc, p) => (p.subscribers > acc.subscribers ? p : acc),
+    displayedPlans[0],
+  );
+  const totalMrr = displayedPlans.reduce((sum, p) => sum + p.mrrBrl, 0);
 
   return (
     <div className="space-y-5">
@@ -84,7 +187,7 @@ export default function PlanosPage() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {plansMock.map((p) => (
+        {displayedPlans.map((p) => (
           <PlanCard key={p.name} plan={p} />
         ))}
       </div>
