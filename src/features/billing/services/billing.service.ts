@@ -66,13 +66,20 @@ export const billingService = {
 
   async getStatus(): Promise<{
     suspended: boolean;
-    reason: 'trial_expired' | 'past_due' | 'canceled' | 'expired' | 'no_subscription' | null;
+    reason:
+      | 'trial_pending_payment'
+      | 'trial_expired'
+      | 'past_due'
+      | 'canceled'
+      | 'expired'
+      | 'no_subscription'
+      | null;
     status: string | null;
     trialEndsAt: string | null;
     planCode: string | null;
   }> {
     const { data } = await api.get('/billing/me/status');
-    return data;
+    return data.data ?? data;
   },
 };
 
