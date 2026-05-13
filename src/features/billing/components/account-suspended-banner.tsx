@@ -56,7 +56,7 @@ export function AccountSuspendedBanner() {
   if (!data || !data.suspended || !data.reason) return null;
 
   return (
-    <div className="sticky top-0 z-30 border-b border-red-500/30 bg-gradient-to-r from-red-600/95 to-rose-600/95 px-4 py-3 text-white shadow-lg">
+    <div className="sticky top-0 z-30 border-b border-red-500/30 bg-red-600 px-4 py-3 text-white shadow-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 flex-shrink-0" />
