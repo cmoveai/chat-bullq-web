@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Search, ChevronRight, Plus, Users } from 'lucide-react';
+import { api } from '@/lib/api';
 import {
   subscribersMock,
   SUBSCRIBERS_STATS,
@@ -12,6 +14,77 @@ import {
 } from '../../_mocks/subscribers';
 import { SubscriberDrawer } from '../../_components/subscriber-drawer';
 import { HeroCard } from '../../_components/hero-card';
+
+interface OrgListItem {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  members: number;
+  channels: number;
+  subscription: {
+    status: 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'CANCELED' | 'EXPIRED';
+    planCode: string;
+    planName?: string;
+    priceMonthlyCents?: number;
+    trialEndsAt?: string | null;
+    nextBillingAt?: string | null;
+    canceledAt?: string | null;
+  } | null;
+}
+
+function planCodeToPlan(code?: string): Plan {
+  switch (code) {
+    case 'PRO':
+      return 'Pro';
+    case 'GROWTH':
+      return 'Growth';
+    case 'STARTER':
+    default:
+      return 'Starter';
+  }
+}
+
+function statusToSubStatus(s?: string): SubscriberStatus {
+  switch (s) {
+    case 'ACTIVE':
+      return 'active';
+    case 'PAST_DUE':
+      return 'overdue';
+    case 'CANCELED':
+    case 'EXPIRED':
+      return 'canceled';
+    case 'TRIAL':
+    default:
+      return 'trial';
+  }
+}
+
+function mapOrgToSubscriber(o: OrgListItem): Subscriber {
+  const plan = planCodeToPlan(o.subscription?.planCode);
+  const mrrBrl = o.subscription?.priceMonthlyCents
+    ? o.subscription.priceMonthlyCents / 100
+    : null;
+  const since = new Date(o.createdAt);
+  const days = Math.max(0, Math.floor((Date.now() - since.getTime()) / 86400000));
+  return {
+    id: o.id,
+    name: o.name,
+    email: `${o.slug}@cmove.ai`,
+    plan,
+    mrrBrl,
+    status: statusToSubStatus(o.subscription?.status),
+    lastLoginRelative: '—',
+    customerSince: since.toLocaleDateString('pt-BR'),
+    customerSinceDays: days,
+    channels: o.channels > 0 ? [`${o.channels} canal${o.channels > 1 ? 'is' : ''}`] : [],
+    agentsCount: 0,
+    messages30d: 0,
+    llmCostMonthUsd: 0,
+    marginPct: 0,
+    invoices: [],
+  };
+}
 
 type StatusFilter = 'all' | 'active' | 'overdue' | 'risk' | 'trial' | 'canceled';
 type PlanFilter = 'all' | Plan;
@@ -76,8 +149,25 @@ export default function AssinantesPage() {
   const [sortKey, setSortKey] = useState<SortKey>('mrr-desc');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const { data: orgsResp } = useQuery<{ data: OrgListItem[]; total: number }>({
+    queryKey: ['super-admin', 'orgs', 'all'],
+    queryFn: async () => {
+      const res = await api.get<{ data: { data: OrgListItem[]; total: number } }>(
+        '/super-admin/orgs?limit=200',
+      );
+      return (res.data as any).data ?? res.data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  // Lista base: dados reais quando disponíveis · senão fallback pro mock (UI dev)
+  const baseList: Subscriber[] = orgsResp?.data?.length
+    ? orgsResp.data.map(mapOrgToSubscriber)
+    : subscribersMock;
+  const usingReal = !!orgsResp?.data?.length;
+
   const filtered = useMemo(() => {
-    let list = [...subscribersMock];
+    let list = [...baseList];
     const q = search.toLowerCase().trim();
     if (q) {
       list = list.filter(
@@ -112,15 +202,22 @@ export default function AssinantesPage() {
       }
     });
     return list;
-  }, [search, planFilter, statusFilter, origemFilter, sortKey]);
+  }, [search, planFilter, statusFilter, origemFilter, sortKey, baseList]);
 
   const selected = selectedId
-    ? subscribersMock.find((s) => s.id === selectedId) ?? null
+    ? baseList.find((s) => s.id === selectedId) ?? null
     : null;
 
-  const totalMrr = subscribersMock
+  const totalMrr = baseList
     .filter((s) => s.status === 'active' || s.status === 'overdue' || s.status === 'risk')
     .reduce((sum, s) => sum + (s.mrrBrl ?? 0), 0);
+
+  const realStats = {
+    active: baseList.filter((s) => s.status === 'active').length,
+    trial: baseList.filter((s) => s.status === 'trial').length,
+    canceled: baseList.filter((s) => s.status === 'canceled').length,
+  };
+  const stats = usingReal ? realStats : SUBSCRIBERS_STATS;
 
   return (
     <>
@@ -128,15 +225,15 @@ export default function AssinantesPage() {
         <HeroCard
           eyebrow="Assinantes · CMOVE.AI-ZAP"
           caption="Total de organizações pagantes"
-          value={String(SUBSCRIBERS_STATS.active)}
+          value={String(stats.active)}
           meta={[
             {
               label: `MRR: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 }).format(totalMrr)}`,
               trend: 'up',
-              trendLabel: 'consolidado',
+              trendLabel: usingReal ? 'real' : 'mock',
             },
-            { label: `${SUBSCRIBERS_STATS.trial} em trial` },
-            { label: `${SUBSCRIBERS_STATS.canceled} cancelado` },
+            { label: `${stats.trial} em trial` },
+            { label: `${stats.canceled} cancelado` },
           ]}
           actions={[
             {
@@ -263,7 +360,7 @@ export default function AssinantesPage() {
         </div>
 
         <div className="text-xs text-zinc-500 dark:text-zinc-500 tabular-nums">
-          {filtered.length} de {subscribersMock.length} exibidos
+          {filtered.length} de {baseList.length} exibidos
         </div>
       </div>
 
