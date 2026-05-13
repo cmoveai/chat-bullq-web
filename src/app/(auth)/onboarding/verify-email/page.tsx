@@ -1,6 +1,6 @@
-import { OtpVerify } from '@/features/auth/components/otp-verify';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import { OtpVerify } from '@/features/auth/components/otp-verify';
 
 export default function VerifyEmailPage() {
   return (
