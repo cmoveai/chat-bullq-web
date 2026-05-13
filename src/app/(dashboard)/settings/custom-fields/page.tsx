@@ -10,6 +10,7 @@ import {
   Settings as SettingsIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { FeaturePaywall } from '@/features/billing/components/feature-paywall';
 import {
   customFieldsService,
   type CustomContactField,
@@ -32,7 +33,7 @@ function newId() {
   return `f_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export default function CustomFieldsSettingsPage() {
+function CustomFieldsSettingsPageInner() {
   const qc = useQueryClient();
   const [fields, setFields] = useState<CustomContactField[]>([]);
   const [saving, setSaving] = useState(false);
@@ -273,5 +274,18 @@ export default function CustomFieldsSettingsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function CustomFieldsSettingsPage() {
+  return (
+    <FeaturePaywall
+      feature="customContactFields"
+      title="Campos personalizados de contato"
+      description="Crie campos extras pra capturar dados específicos do seu negócio em cada contato. Disponível a partir do plano Growth."
+      requiredPlan="Growth"
+    >
+      <CustomFieldsSettingsPageInner />
+    </FeaturePaywall>
   );
 }

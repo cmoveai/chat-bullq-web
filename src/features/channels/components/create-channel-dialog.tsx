@@ -5,9 +5,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Loader2, X, Copy, Check } from 'lucide-react';
+import Link from 'next/link';
+import { Loader2, X, Copy, Check, Lock } from 'lucide-react';
 import { channelsService, type ChannelType } from '../services/channels.service';
 import { ZappfyIcon, MetaIcon, InstagramIcon } from '@/components/ui/icons';
+import { useFeatures } from '@/features/billing/hooks/use-features';
 
 const channelTypes: { value: ChannelType; label: string; icon: React.ElementType; color: string; description: string }[] = [
   {
@@ -76,6 +78,12 @@ export function CreateChannelDialog({ open, onClose, onCreated }: CreateChannelD
   const [selectedType, setSelectedType] = useState<ChannelType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { features } = useFeatures();
+
+  function isChannelLocked(value: ChannelType): boolean {
+    if (value === 'INSTAGRAM' && !features.instagramChannels) return true;
+    return false;
+  }
 
   const zappfyForm = useForm<ZappfyFormData>({
     resolver: zodResolver(zappfySchema),
@@ -200,21 +208,46 @@ export function CreateChannelDialog({ open, onClose, onCreated }: CreateChannelD
 
         {step === 'type' ? (
           <div className="mt-6 grid gap-3">
-            {channelTypes.map((ct) => (
-              <button
-                key={ct.value}
-                onClick={() => handleTypeSelect(ct.value)}
-                className="flex items-center gap-4 rounded-xl border border-zinc-200 p-4 text-left transition-all hover:border-primary hover:shadow-sm dark:border-zinc-700 dark:hover:border-primary"
-              >
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200/60 dark:border-zinc-700/60 ${ct.color}`}>
-                  <ct.icon className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{ct.label}</p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{ct.description}</p>
-                </div>
-              </button>
-            ))}
+            {channelTypes.map((ct) => {
+              const locked = isChannelLocked(ct.value);
+              if (locked) {
+                return (
+                  <Link
+                    key={ct.value}
+                    href="/plans"
+                    className="flex items-center gap-4 rounded-xl border border-zinc-200 p-4 text-left opacity-60 transition-all hover:opacity-100 hover:border-amber-300 dark:border-zinc-700 dark:hover:border-amber-700"
+                  >
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200/60 dark:border-zinc-700/60 ${ct.color}`}>
+                      <ct.icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{ct.label}</p>
+                        <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
+                          <Lock className="h-2.5 w-2.5" /> Growth
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">{ct.description}</p>
+                    </div>
+                  </Link>
+                );
+              }
+              return (
+                <button
+                  key={ct.value}
+                  onClick={() => handleTypeSelect(ct.value)}
+                  className="flex items-center gap-4 rounded-xl border border-zinc-200 p-4 text-left transition-all hover:border-primary hover:shadow-sm dark:border-zinc-700 dark:hover:border-primary"
+                >
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200/60 dark:border-zinc-700/60 ${ct.color}`}>
+                    <ct.icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{ct.label}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{ct.description}</p>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         ) : selectedType === 'WHATSAPP_ZAPPFY' ? (
           <form onSubmit={zappfyForm.handleSubmit(onSubmitZappfy)} className="mt-6 space-y-4">

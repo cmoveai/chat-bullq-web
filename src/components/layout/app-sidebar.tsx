@@ -22,6 +22,7 @@ import {
   Magnet,
   Clock,
   History,
+  Megaphone,
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
 import { NavGroup } from '@/components/layout/nav-group';
@@ -59,6 +60,7 @@ interface NavItem {
 const automacoesNav: NavItem[] = [
   { href: '/automations', label: 'Minhas Automações', icon: Zap },
   { href: '/automations/templates', label: 'Modelos', icon: LayoutGrid, requiresFeature: 'bpmnBuilder' },
+  { href: '/campaigns', label: 'Campanhas', icon: Megaphone, requiresFeature: 'campaigns' },
   { href: '/automations/lead-captures', label: 'Capturas de Leads', icon: Magnet },
   { href: '/automations/waitlists', label: 'Listas de Espera', icon: Clock },
 ];

@@ -11,10 +11,13 @@ import {
   Bot, Tag as TagIcon, MessageCircle, CalendarClock,
   Star, RotateCcw, ShieldCheck,
 } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { dashboardService, type SparklinePoint } from '@/features/dashboard/services/dashboard.service';
 import { useOrgId } from '@/hooks/use-org-query-key';
 import { Heatmap } from '@/features/dashboard/components/Heatmap';
 import { AgentList } from '@/features/dashboard/components/AgentList';
+import { useFeatures } from '@/features/billing/hooks/use-features';
 
 const CHANNEL_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
@@ -145,6 +148,7 @@ const tooltipStyle = {
 
 export default function DashboardPage() {
   const orgId = useOrgId();
+  const { features } = useFeatures();
   const { data: overview, isLoading: loadingOverview } = useQuery({
     queryKey: ['dashboard-overview', orgId],
     queryFn: () => dashboardService.getOverview(),
@@ -195,6 +199,26 @@ export default function DashboardPage() {
       <div className="mx-auto w-full max-w-6xl p-6">
       <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Dashboard</h1>
       <p className="mt-1 text-sm text-zinc-500">Últimos 30 dias</p>
+
+      {!features.dashboardAdvanced && (
+        <Link
+          href="/plans"
+          className="mt-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-white p-4 transition-colors hover:border-amber-300 dark:border-amber-900 dark:from-amber-950/40 dark:to-zinc-950"
+        >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/40">
+            <Sparkles className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              Métricas avançadas estão no plano Pro
+            </p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Cohort retention · funil de conversão · drill-down por canal · alertas customizados
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-zinc-400" />
+        </Link>
+      )}
 
       {/* HERO KPIs */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
