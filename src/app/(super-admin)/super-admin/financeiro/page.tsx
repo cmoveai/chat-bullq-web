@@ -36,6 +36,22 @@ interface InvoicesResponse {
   summary: InvoiceSummary;
 }
 
+interface FinanceSnapshot {
+  reference: string;
+  inflowsBrl: number;
+  variableBrl: number;
+  fixedBrl: number;
+  marginBrl: number;
+  variablePct: number;
+  fixedPct: number;
+  marginPct: number;
+  isMethodPassing: boolean;
+  llmCostMonthUsd: number;
+  llmCostMonthBrl: number;
+  receivable7dBrl: number;
+  receivable7dCount: number;
+}
+
 function formatBrl(value: number) {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -63,10 +79,19 @@ export default function FinanceiroPage() {
     refetchInterval: 60_000,
   });
 
-  const summary = invoicesResp?.summary;
-  const usingReal = !!summary && summary.paidThisMonthBrl > 0;
+  const { data: finance } = useQuery<FinanceSnapshot>({
+    queryKey: ['super-admin', 'finance-snapshot'],
+    queryFn: async () => {
+      const res = await api.get<{ data: FinanceSnapshot }>('/super-admin/finance/snapshot');
+      return (res.data as any).data ?? res.data;
+    },
+    refetchInterval: 60_000,
+  });
 
-  const inflowsDisplay = summary?.paidThisMonthBrl ?? m.inflowsBrl;
+  const summary = invoicesResp?.summary;
+  const usingReal = !!finance && finance.inflowsBrl > 0;
+
+  const inflowsDisplay = finance?.inflowsBrl ?? m.inflowsBrl;
   const trendPct =
     summary && summary.paidPrevMonthBrl > 0
       ? Math.round(
@@ -75,7 +100,15 @@ export default function FinanceiroPage() {
             100,
         )
       : 18;
-  const receivable7d = (summary?.openBrl ?? 0) + (summary?.overdueBrl ?? 0);
+  const receivable7d = finance?.receivable7dBrl ?? (summary?.openBrl ?? 0) + (summary?.overdueBrl ?? 0);
+
+  // Reais 40/20/40 quando disponíveis, fallback pro mock
+  const variableBrlReal = finance?.variableBrl;
+  const fixedBrlReal = finance?.fixedBrl;
+  const marginBrlReal = finance?.marginBrl;
+  const variablePctReal = finance?.variablePct;
+  const fixedPctReal = finance?.fixedPct;
+  const marginPctReal = finance?.marginPct;
 
   return (
     <div className="space-y-5">
@@ -145,28 +178,43 @@ export default function FinanceiroPage() {
       </header>
 
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5">
+        {usingReal && (
+          <div className="mb-4 flex items-center gap-2">
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+              real
+            </span>
+            <span className="text-[11px] text-zinc-500">
+              custos fixos via env · receita real do mês ({finance?.reference})
+            </span>
+          </div>
+        )}
         <div className="space-y-4">
           <RuleBar
             label="Variáveis"
-            value={m.variablePctOfRevenue}
+            value={variablePctReal ?? m.variablePctOfRevenue}
             limit={40}
-            amountBrl={m.variableBrl}
+            amountBrl={variableBrlReal ?? m.variableBrl}
             inverse
           />
           <RuleBar
             label="Fixas"
-            value={m.fixedPctOfRevenue}
+            value={fixedPctReal ?? m.fixedPctOfRevenue}
             limit={20}
-            amountBrl={m.fixedBrl}
+            amountBrl={fixedBrlReal ?? m.fixedBrl}
             inverse
           />
           <RuleBar
             label="Margem op"
-            value={m.marginPctOfRevenue}
+            value={marginPctReal ?? m.marginPctOfRevenue}
             limit={40}
-            amountBrl={m.marginBrl}
+            amountBrl={marginBrlReal ?? m.marginBrl}
           />
         </div>
+        {finance && !finance.isMethodPassing && finance.inflowsBrl > 0 && (
+          <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
+            Método 40/20/40 não está saudável · variáveis {finance.variablePct}% (≤40) · fixas {finance.fixedPct}% (≤20) · margem {finance.marginPct}% (≥40)
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

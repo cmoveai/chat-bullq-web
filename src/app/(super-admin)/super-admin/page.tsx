@@ -133,6 +133,20 @@ export default function SuperAdminVisaoGeralPage() {
     refetchInterval: 60_000,
   });
 
+  const { data: mrrHist } = useQuery<{
+    days: number;
+    series: Array<{ date: string; mrrBrl: number; activeSubs: number; trialSubs: number }>;
+  }>({
+    queryKey: ['super-admin', 'mrr-history', 30],
+    queryFn: async () => {
+      const res = await api.get<{ data: { days: number; series: any[] } }>(
+        '/super-admin/analytics/mrr-history?days=30',
+      );
+      return (res.data as any).data ?? res.data;
+    },
+    refetchInterval: 60_000,
+  });
+
   const m = overviewMock;
 
   // Real values quando disponíveis · fallback pro mock pra UI não quebrar
@@ -141,6 +155,29 @@ export default function SuperAdminVisaoGeralPage() {
   const subsReal = realKpis ? realKpis.activeSubs + realKpis.trialingSubs : undefined;
   const subsDisplay = subsReal ?? m.kpis.activeSubscribers;
   const usingRealMrr = mrrReal !== undefined && mrrReal > 0;
+
+  // Série histórica real · usa quando tem variação (mais de 1 valor distinto)
+  const realSeries = mrrHist?.series.map((p) => p.mrrBrl);
+  const seriesVariation = realSeries
+    ? new Set(realSeries).size
+    : 0;
+  const mrrSeries = realSeries && seriesVariation > 1 ? realSeries : m.mrrSeries;
+  // Tendência: comparação último dia vs início da série
+  const realTrendPct =
+    realSeries && realSeries.length >= 2 && realSeries[0] > 0
+      ? Math.round(((realSeries[realSeries.length - 1] - realSeries[0]) / realSeries[0]) * 100)
+      : null;
+  const mrrTrendPct =
+    realTrendPct !== null ? `${realTrendPct >= 0 ? '+' : ''}${realTrendPct}%` : m.kpis.mrrTrendPct;
+  // Novos assinantes 30d · diff de activeSubs entre primeiro e último ponto
+  const realNewCount =
+    mrrHist?.series && mrrHist.series.length >= 2
+      ? Math.max(
+          0,
+          mrrHist.series[mrrHist.series.length - 1].activeSubs - mrrHist.series[0].activeSubs,
+        )
+      : null;
+  const newCountDisplay = realNewCount ?? m.kpis.newSubscribers30d;
 
   // Plan distribution calculada a partir das orgs reais
   const realDistribution = orgsResp?.data
@@ -183,8 +220,8 @@ export default function SuperAdminVisaoGeralPage() {
         <HeroMrrCard
           mrr={mrrDisplay}
           subscribers={subsDisplay}
-          newCount={m.kpis.newSubscribers30d}
-          series={m.mrrSeries}
+          newCount={newCountDisplay}
+          series={mrrSeries}
           isReal={usingRealMrr}
         />
         <GoalCard mrr={mrrDisplay} goal={MARGIN_GOAL} pct={goalPct} />
@@ -235,8 +272,8 @@ export default function SuperAdminVisaoGeralPage() {
 
       <RevenueGrowthCard
         mrr={mrrDisplay}
-        trendPct={m.kpis.mrrTrendPct}
-        series={m.mrrSeries}
+        trendPct={mrrTrendPct}
+        series={mrrSeries}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-4">
