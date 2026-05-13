@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { authService } from '@/features/auth/services/auth.service';
 import { usePermissionsSync } from '@/features/settings/hooks/use-permissions-sync';
 import { ToolFailureBanner } from '@/features/ai-agents/components/tool-failure-banner';
+import { AccountSuspendedBanner } from '@/features/billing/components/account-suspended-banner';
 
 export default function DashboardLayout({
   children,
@@ -71,6 +72,7 @@ export default function DashboardLayout({
       }
     >
       <div className="flex h-full flex-col">
+        <AccountSuspendedBanner />
         <TopBar />
         <ToolFailureBanner />
         <div className="flex-1 min-h-0 overflow-auto">{children}</div>

@@ -9,6 +9,10 @@ interface RegisterPayload {
   name: string;
   email: string;
   password: string;
+  phone?: string;
+  cpfCnpj?: string;
+  companySize?: string;
+  planIntent?: { planId: 'starter' | 'growth' | 'pro'; cycle: 'monthly' | 'quarterly' };
   inviteToken?: string;
 }
 

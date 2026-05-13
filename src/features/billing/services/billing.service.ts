@@ -63,6 +63,17 @@ export const billingService = {
       return null;
     }
   },
+
+  async getStatus(): Promise<{
+    suspended: boolean;
+    reason: 'trial_expired' | 'past_due' | 'canceled' | 'expired' | 'no_subscription' | null;
+    status: string | null;
+    trialEndsAt: string | null;
+    planCode: string | null;
+  }> {
+    const { data } = await api.get('/billing/me/status');
+    return data;
+  },
 };
 
 export function formatPlanPrice(brl: number): string {
