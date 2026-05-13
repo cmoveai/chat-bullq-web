@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { InboxTree } from '@/features/inbox-views/components/inbox-tree';
 import { NavGroup } from '@/components/layout/nav-group';
+import { useFeatures } from '@/features/billing/hooks/use-features';
 
 import { useAuthStore } from '@/stores/auth-store';
 import { Avatar } from '@/components/ui/avatar';
@@ -47,25 +48,41 @@ import {
   DropdownDivider,
 } from '@/components/ui/dropdown';
 
-const crmNav = [
-  { href: '/contacts', label: 'Contatos', icon: Contact },
-  { href: '/tasks', label: 'Tarefas', icon: CheckSquare },
-  { href: '/offers', label: 'Ofertas', icon: Briefcase },
-  { href: '/pipelines', label: 'Kanban', icon: KanbanSquare },
-  { href: '/pipelines', label: 'Pipelines', icon: KanbanSquare },
-];
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  /** Quando true e a feature não está liberada, mostra badge "Pro" no item. */
+  requiresFeature?: keyof ReturnType<typeof useFeatures>['features'];
+}
 
-const automacoesNav = [
+const automacoesNav: NavItem[] = [
   { href: '/automations', label: 'Minhas Automações', icon: Zap },
-  { href: '/automations/templates', label: 'Modelos', icon: LayoutGrid },
+  { href: '/automations/templates', label: 'Modelos', icon: LayoutGrid, requiresFeature: 'bpmnBuilder' },
   { href: '/automations/lead-captures', label: 'Capturas de Leads', icon: Magnet },
   { href: '/automations/waitlists', label: 'Listas de Espera', icon: Clock },
 ];
+
+const crmNav: NavItem[] = [
+  { href: '/contacts', label: 'Contatos', icon: Contact },
+  { href: '/tasks', label: 'Tarefas', icon: CheckSquare },
+  { href: '/offers', label: 'Ofertas', icon: Briefcase },
+  { href: '/pipelines', label: 'Pipelines', icon: KanbanSquare },
+];
+
+function ProBadge() {
+  return (
+    <span className="ml-auto rounded-md bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
+      Pro
+    </span>
+  );
+}
 
 export function AppSidebar() {
   const { user, organizations, activeOrgId, setActiveOrg, logout } =
     useAuthStore();
   const activeOrg = organizations.find((o) => o.id === activeOrgId);
+  const { features } = useFeatures();
 
   const handleOrgSwitch = (orgId: string) => {
     setActiveOrg(orgId);
@@ -118,12 +135,16 @@ export function AppSidebar() {
 
         <SidebarSection>
           <NavGroup label="CRM" icon={Contact} storageKey="nav-crm-expanded">
-            {crmNav.map((item) => (
-              <SidebarItem key={item.label} href={item.href}>
-                <item.icon className="size-4" />
-                <SidebarLabel>{item.label}</SidebarLabel>
-              </SidebarItem>
-            ))}
+            {crmNav.map((item) => {
+              const locked = item.requiresFeature && !features[item.requiresFeature];
+              return (
+                <SidebarItem key={item.label} href={item.href}>
+                  <item.icon className="size-4" />
+                  <SidebarLabel>{item.label}</SidebarLabel>
+                  {locked && <ProBadge />}
+                </SidebarItem>
+              );
+            })}
           </NavGroup>
 
           <NavGroup
@@ -165,12 +186,16 @@ export function AppSidebar() {
             storageKey="nav-automacoes-expanded"
             defaultExpanded={false}
           >
-            {automacoesNav.map((item) => (
-              <SidebarItem key={item.href} href={item.href}>
-                <item.icon className="size-4" />
-                <SidebarLabel>{item.label}</SidebarLabel>
-              </SidebarItem>
-            ))}
+            {automacoesNav.map((item) => {
+              const locked = item.requiresFeature && !features[item.requiresFeature];
+              return (
+                <SidebarItem key={item.href} href={item.href}>
+                  <item.icon className="size-4" />
+                  <SidebarLabel>{item.label}</SidebarLabel>
+                  {locked && <ProBadge />}
+                </SidebarItem>
+              );
+            })}
           </NavGroup>
         </SidebarSection>
 

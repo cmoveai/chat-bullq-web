@@ -7,6 +7,7 @@ import {
   BpmnBuilder,
   type BpmnFlowConfig,
 } from '@/features/automations/components/bpmn-builder';
+import { FeaturePaywall } from '@/features/billing/components/feature-paywall';
 
 export default function AutomationBuilderPage() {
   const params = useParams();
@@ -40,18 +41,25 @@ export default function AutomationBuilderPage() {
       : null;
 
   return (
-    <BpmnBuilder
-      automationName={automation.name}
-      initialConfig={config}
-      onSave={async (newConfig) => {
-        await automationsService.update(id, {
-          config: {
-            ...(automation.config ?? {}),
-            ...newConfig,
-          } as Record<string, unknown>,
-        });
-      }}
-      backHref="/automations"
-    />
+    <FeaturePaywall
+      feature="bpmnBuilder"
+      title="Construtor BPMN visual"
+      description="Crie fluxos de automação multi-etapa com gatilhos, condições, ações e simulador. Disponível a partir do plano Growth."
+      requiredPlan="Growth"
+    >
+      <BpmnBuilder
+        automationName={automation.name}
+        initialConfig={config}
+        onSave={async (newConfig) => {
+          await automationsService.update(id, {
+            config: {
+              ...(automation.config ?? {}),
+              ...newConfig,
+            } as Record<string, unknown>,
+          });
+        }}
+        backHref="/automations"
+      />
+    </FeaturePaywall>
   );
 }

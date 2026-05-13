@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
+import { FeaturePaywall } from '@/features/billing/components/feature-paywall';
 
 function KirvanoLogo({ className }: { className?: string }) {
   // Container do TemplateCard já aplica bg preto + rounded · só desenhamos o texto branco.
@@ -178,7 +179,7 @@ const templates: Template[] = [
   },
 ];
 
-export default function AutomationTemplatesPage() {
+function AutomationTemplatesPageInner() {
   const router = useRouter();
 
   const handleUse = (template: Template) => {
@@ -304,5 +305,18 @@ function TemplateCard({
         </button>
       </div>
     </div>
+  );
+}
+
+export default function AutomationTemplatesPage() {
+  return (
+    <FeaturePaywall
+      feature="bpmnBuilder"
+      title="Modelos de automação"
+      description="Templates pré-prontos de fluxos BPMN multi-etapa. Disponível a partir do plano Growth."
+      requiredPlan="Growth"
+    >
+      <AutomationTemplatesPageInner />
+    </FeaturePaywall>
   );
 }
