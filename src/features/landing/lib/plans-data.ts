@@ -23,7 +23,7 @@ export const PLANS: Plan[] = [
     features: [
       '1 Agente IA (wizard guiado)',
       '1 WhatsApp Cloud API',
-      '2 atendentes humanos',
+      '2 atendentes / Agentes',
       '1 fluxo / robô',
       '2.500 mensagens IA / mês',
       '5.000 contatos no CRM',
@@ -45,7 +45,7 @@ export const PLANS: Plan[] = [
     features: [
       '3 Agentes IA (wizard + editor)',
       '2 WhatsApps + Instagram DM',
-      '8 atendentes humanos',
+      '8 atendentes / Agentes',
       '5 fluxos / robôs',
       '7.500 mensagens IA / mês',
       '25.000 contatos no CRM',
@@ -68,7 +68,7 @@ export const PLANS: Plan[] = [
     features: [
       'Agentes IA ilimitados (BPMN visual)',
       '5 WhatsApps + Instagram + Webchat',
-      '25 atendentes humanos',
+      '25 atendentes / Agentes',
       'Fluxos / robôs ilimitados',
       '20.000 mensagens IA / mês',
       '100.000 contatos no CRM',
