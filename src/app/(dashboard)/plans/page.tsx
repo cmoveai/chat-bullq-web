@@ -25,7 +25,7 @@ export default function PlansPage() {
   return (
     <div className="flex h-full flex-col gap-6 p-6">
       {/* HERO GRADIENT */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-cyan-600 px-8 py-12 text-center text-white shadow-lg">
+      <div className="relative flex min-h-[260px] flex-col items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-cyan-600 px-8 py-12 text-center text-white shadow-lg">
         <div className="pointer-events-none absolute -top-10 -right-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-cyan-300/20 blur-3xl" />
         <div className="relative mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-white/15 backdrop-blur">
