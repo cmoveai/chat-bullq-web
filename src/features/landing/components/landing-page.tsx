@@ -246,7 +246,7 @@ export function LandingPage() {
       {/* FOOTER */}
       <footer className="border-t border-white/5 py-10 text-center text-xs text-zinc-600">
         <div className="mx-auto max-w-7xl px-6">
-          CMOVE.AI · CNPJ 66.432.401/0001-29 · contato@crismagalhaesia.com
+          CMOVE.AI · CNPJ 66.432.401/0001-29 · cris@cmove.ai
         </div>
       </footer>
 
