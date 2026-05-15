@@ -32,6 +32,8 @@ RUN addgroup -g 1001 -S nodejs && adduser -S -u 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Cyber Onda 2 · #31 · public/ inclui .well-known/security.txt + assets estáticos
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
 EXPOSE 3000
