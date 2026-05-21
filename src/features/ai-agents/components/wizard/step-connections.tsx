@@ -19,12 +19,14 @@ interface StepConnectionsProps {
 const TYPE_LABEL: Record<Channel['type'], string> = {
   WHATSAPP_OFFICIAL: 'WhatsApp Oficial',
   WHATSAPP_ZAPPFY: 'WhatsApp (Zappfy)',
+  WHATSAPP_ZAPI: 'WhatsApp (Z-API)',
   INSTAGRAM: 'Instagram',
 };
 
 const TYPE_ICON: Record<Channel['type'], React.ElementType> = {
   WHATSAPP_OFFICIAL: MetaIcon,
   WHATSAPP_ZAPPFY: ZappfyIcon,
+  WHATSAPP_ZAPI: ZappfyIcon,
   INSTAGRAM: InstagramIcon,
 };
 
