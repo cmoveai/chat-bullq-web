@@ -71,6 +71,7 @@ const scopeOptions: { label: string; value: ScopeFilter; icon: React.ElementType
 
 const channelIcons: Record<string, React.ElementType> = {
   WHATSAPP_ZAPPFY: ZappfyIcon,
+  WHATSAPP_ZAPI: ZappfyIcon,
   WHATSAPP_OFFICIAL: MetaIcon,
   INSTAGRAM: InstagramIcon,
 };

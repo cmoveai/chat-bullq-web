@@ -10,6 +10,7 @@ import { ZappfyIcon, MetaIcon, InstagramIcon } from '@/components/ui/icons';
 
 const channelIcons: Record<string, React.ElementType> = {
   WHATSAPP_ZAPPFY: ZappfyIcon,
+  WHATSAPP_ZAPI: ZappfyIcon,
   WHATSAPP_OFFICIAL: MetaIcon,
   INSTAGRAM: InstagramIcon,
 };
