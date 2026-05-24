@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Pencil, Plus, Layers } from 'lucide-react';
 import { api } from '@/lib/api';
-import { plansMock, FUNNEL_30D, type PlanMock } from '../../_mocks/plans';
+import { plansMock, type PlanMock } from '../../_mocks/plans';
 import { Sparkline } from '../../_components/sparkline';
 import { HeroCard } from '../../_components/hero-card';
 
@@ -27,13 +27,9 @@ function mapBackendPlan(
   subscribers: number,
   mrrBrl: number,
   isMostSold: boolean,
-): PlanMock | null {
-  // Apenas Starter/Growth/Pro são planos comerciais · ignorar SOLO/TIME/etc legados
-  const allowed: PlanMock['name'][] = ['Starter', 'Growth', 'Pro'];
-  const name = p.name as PlanMock['name'];
-  if (!allowed.includes(name)) return null;
+): PlanMock {
   return {
-    name,
+    name: p.name as PlanMock['name'],
     priceBrl: p.priceMonthlyCents / 100,
     isMostSold,
     subscribers,
@@ -78,8 +74,9 @@ export default function PlanosPage() {
   const { data: backendPlans } = useQuery<BackendPlan[]>({
     queryKey: ['plans', 'public'],
     queryFn: async () => {
-      const res = await api.get<{ data: BackendPlan[] }>('/billing/plans');
-      return res.data.data;
+      const res = await api.get('/billing/plans');
+      const d = (res.data as any)?.data;
+      return Array.isArray(d) ? d : (d?.data ?? []);
     },
   });
 
@@ -131,7 +128,6 @@ export default function PlanosPage() {
   const usingReal = realPlans.length > 0;
   const displayedPlans = usingReal ? realPlans : plansMock;
 
-  const conversionPct = Math.round((FUNNEL_30D.paying / FUNNEL_30D.trialsStarted) * 100);
   const topPlan = displayedPlans.reduce(
     (acc, p) => (p.subscribers > acc.subscribers ? p : acc),
     displayedPlans[0],
@@ -149,8 +145,7 @@ export default function PlanosPage() {
             label: `${topPlan.name} é o mais vendido (${topPlan.subscribers} ass.)`,
             trend: 'up',
           },
-          { label: `Conversão trial → pago: ${conversionPct}%`, trend: 'up' },
-          { label: `Funil 30d: ${FUNNEL_30D.trialsStarted} → ${FUNNEL_30D.activated} → ${FUNNEL_30D.paying}` },
+          { label: `${displayedPlans.length} planos no catálogo` },
         ]}
         series={topPlan.trend30d}
         actions={[
@@ -192,35 +187,6 @@ export default function PlanosPage() {
         ))}
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5">
-        <div className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-500 font-medium mb-4">
-          Funil últimos 30 dias
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <FunnelStep
-            label="Trials iniciados"
-            value={FUNNEL_30D.trialsStarted}
-            total={FUNNEL_30D.trialsStarted}
-          />
-          <FunnelStep
-            label="Ativados (1ª msg)"
-            value={FUNNEL_30D.activated}
-            total={FUNNEL_30D.trialsStarted}
-          />
-          <FunnelStep
-            label="Pagantes"
-            value={FUNNEL_30D.paying}
-            total={FUNNEL_30D.trialsStarted}
-            highlight
-          />
-        </div>
-        <div className="text-xs text-zinc-500 dark:text-zinc-500 mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-900">
-          Conversão trial → pago:{' '}
-          <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">
-            {conversionPct}%
-          </span>
-        </div>
-      </div>
     </div>
   );
 }
@@ -319,41 +285,3 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-function FunnelStep({
-  label,
-  value,
-  total,
-  highlight,
-}: {
-  label: string;
-  value: number;
-  total: number;
-  highlight?: boolean;
-}) {
-  const pct = Math.round((value / total) * 100);
-  return (
-    <div>
-      <div className="text-[10px] uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-500 font-medium mb-2">
-        {label}
-      </div>
-      <div
-        className={`text-2xl font-semibold tabular-nums ${
-          highlight
-            ? 'text-emerald-600 dark:text-emerald-400'
-            : 'text-zinc-900 dark:text-zinc-100'
-        }`}
-      >
-        {value}
-      </div>
-      <div className="mt-2 h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-        <div
-          className={highlight ? 'h-full bg-emerald-500' : 'h-full bg-zinc-900 dark:bg-zinc-100'}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <div className="text-[10px] tabular-nums text-zinc-400 dark:text-zinc-600 mt-1.5">
-        {pct}% do topo
-      </div>
-    </div>
-  );
-}

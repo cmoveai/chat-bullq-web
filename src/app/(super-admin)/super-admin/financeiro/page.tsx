@@ -4,12 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   Download,
-  TrendingUp,
+  Wallet,
   ArrowDownRight,
   ArrowUpRight,
+  Cpu,
 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { financialMock } from '../../_mocks/financial';
 import { HeroCard } from '../../_components/hero-card';
 
 interface InvoiceSummary {
@@ -23,16 +23,6 @@ interface InvoiceSummary {
 }
 
 interface InvoicesResponse {
-  data: Array<{
-    id: string;
-    amountBrl: number;
-    status: string;
-    dueDate: string;
-    paidAt: string | null;
-    organization: { id: string; name: string; slug: string };
-    plan: { code: string; name: string } | null;
-  }>;
-  total: number;
   summary: InvoiceSummary;
 }
 
@@ -60,20 +50,14 @@ function formatBrl(value: number) {
   }).format(value);
 }
 
-function formatBrlCompact(value: number) {
-  if (value >= 1000) {
-    return `R$ ${(value / 1000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}k`;
-  }
-  return formatBrl(value);
-}
-
-export default function FinanceiroPage() {
-  const m = financialMock;
-
+// Resultado do ZAP como unidade de negócio: receita do produto menos os custos
+// DIRETOS dele (gateway + IA). Custo fixo da empresa e 40/20/40 consolidado NÃO
+// entram aqui — vivem no cmove.ai/admin. O ZAP reporta a contribuição pra lá.
+export default function ResultadoZapPage() {
   const { data: invoicesResp } = useQuery<InvoicesResponse>({
     queryKey: ['super-admin', 'invoices'],
     queryFn: async () => {
-      const res = await api.get<{ data: InvoicesResponse }>('/super-admin/invoices?limit=20');
+      const res = await api.get('/super-admin/invoices?limit=20');
       return (res.data as any).data ?? res.data;
     },
     refetchInterval: 60_000,
@@ -82,16 +66,26 @@ export default function FinanceiroPage() {
   const { data: finance } = useQuery<FinanceSnapshot>({
     queryKey: ['super-admin', 'finance-snapshot'],
     queryFn: async () => {
-      const res = await api.get<{ data: FinanceSnapshot }>('/super-admin/finance/snapshot');
+      const res = await api.get('/super-admin/finance/snapshot');
       return (res.data as any).data ?? res.data;
     },
     refetchInterval: 60_000,
   });
 
   const summary = invoicesResp?.summary;
-  const usingReal = !!finance && finance.inflowsBrl > 0;
+  const reference = finance?.reference ?? '—';
+  const inflows = finance?.inflowsBrl ?? 0;
+  const gatewayBrl = finance?.variableBrl ?? 0; // gateway + impostos (est. 10%)
+  const llmBrl = finance?.llmCostMonthBrl ?? 0; // custo de IA real
+  const llmUsd = finance?.llmCostMonthUsd ?? 0;
+  const receivable = finance?.receivable7dBrl ?? 0;
+  const receivableCount = finance?.receivable7dCount ?? 0;
 
-  const inflowsDisplay = finance?.inflowsBrl ?? m.inflowsBrl;
+  const directCosts = gatewayBrl + llmBrl;
+  const contribution = inflows - directCosts;
+  const contributionPct = inflows > 0 ? Math.round((contribution / inflows) * 100) : 0;
+  const isHealthy = contribution > 0;
+
   const trendPct =
     summary && summary.paidPrevMonthBrl > 0
       ? Math.round(
@@ -99,186 +93,149 @@ export default function FinanceiroPage() {
             summary.paidPrevMonthBrl) *
             100,
         )
-      : 18;
-  const receivable7d = finance?.receivable7dBrl ?? (summary?.openBrl ?? 0) + (summary?.overdueBrl ?? 0);
-
-  // Reais 40/20/40 quando disponíveis, fallback pro mock
-  const variableBrlReal = finance?.variableBrl;
-  const fixedBrlReal = finance?.fixedBrl;
-  const marginBrlReal = finance?.marginBrl;
-  const variablePctReal = finance?.variablePct;
-  const fixedPctReal = finance?.fixedPct;
-  const marginPctReal = finance?.marginPct;
+      : 0;
 
   return (
     <div className="space-y-5">
       <HeroCard
-        eyebrow={`Fluxo financeiro · ${m.reference}`}
-        caption="Margem operacional do mês"
-        value={formatBrl(m.marginBrl)}
+        eyebrow={`Resultado do ZAP · ${reference}`}
+        caption="Margem de contribuição do mês"
+        value={formatBrl(contribution)}
         meta={[
           {
-            label: `${m.marginPctOfRevenue}% da receita`,
-            trend: 'up',
-            trendLabel: 'meta atingida',
+            label: `${contributionPct}% de contribuição`,
+            trend: isHealthy ? 'up' : 'down',
+            trendLabel: isHealthy ? 'o ZAP se paga' : 'ainda no investimento',
           },
-          { label: `Entradas: ${formatBrl(m.inflowsBrl)}` },
-          { label: `Saídas: ${formatBrl(m.variableBrl + m.fixedBrl)}` },
+          { label: `Receita: ${formatBrl(inflows)}` },
+          { label: `Custos diretos: ${formatBrl(directCosts)}` },
         ]}
         actions={[
           {
             label: 'Exportar CSV',
             icon: Download,
             variant: 'primary',
-            onClick: () => exportFinancialCsv(m),
+            onClick: () => finance && exportResultadoCsv(finance, contribution),
           },
           {
             label: 'Mudar mês',
             variant: 'secondary',
             onClick: () =>
               toast('Filtro de mês', {
-                description: 'Seletor de período chega quando tiver histórico real (atual: Mai/26 fixo)',
+                description: 'Seletor de período chega quando houver histórico de meses fechados.',
               }),
           },
         ]}
-        pending
       />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiPill
-          label={usingReal ? 'Recebido este mês (real)' : 'Saldo do mês'}
-          value={formatBrl(usingReal ? inflowsDisplay : m.marginBrl)}
-          trend={{ direction: trendPct >= 0 ? 'up' : 'down', pct: `${Math.abs(trendPct)}%` }}
+          label="Recebido este mês"
+          value={formatBrl(inflows)}
+          trend={
+            trendPct !== 0
+              ? { direction: trendPct >= 0 ? 'up' : 'down', pct: `${Math.abs(trendPct)}%` }
+              : undefined
+          }
         />
         <KpiPill
-          label="Entradas"
-          value={formatBrl(usingReal ? inflowsDisplay : m.inflowsBrl)}
-          trend={{ direction: 'up', pct: usingReal ? `${trendPct}%` : '18%' }}
+          label="A receber (7 dias)"
+          value={formatBrl(receivable)}
+          trend={{ direction: 'up', pct: `${receivableCount} abertas`, positive: true }}
         />
+        <KpiPill label="Custos diretos" value={formatBrl(directCosts)} />
         <KpiPill
-          label="Saídas"
-          value={formatBrl(m.variableBrl + m.fixedBrl)}
-          trend={{ direction: 'down', pct: '5%', positive: true }}
-        />
-        <KpiPill
-          label="A receber"
-          value={formatBrl(usingReal ? receivable7d : 1794)}
-          trend={{ direction: 'up', pct: usingReal ? `${summary?.openCount ?? 0} abertas` : '6%' }}
+          label="Contribuição"
+          value={formatBrl(contribution)}
+          trend={{ direction: isHealthy ? 'up' : 'down', pct: `${contributionPct}%`, positive: isHealthy }}
         />
       </div>
 
       <header>
         <h2 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
-          <TrendingUp className="w-3.5 h-3.5 text-zinc-500" />
-          Distribuição
+          <Wallet className="w-3.5 h-3.5 text-zinc-500" />
+          Custos diretos do ZAP
         </h2>
         <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-          Método 40/20/40 da CMOVE.AI · variáveis ≤ 40% · fixas ≤ 20% · margem op ≥ 40%
+          Só o que o produto consome. Custo fixo da empresa e 40/20/40 consolidado ficam no cmove.ai/admin.
         </p>
       </header>
 
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5">
-        {usingReal && (
-          <div className="mb-4 flex items-center gap-2">
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
-              real
-            </span>
-            <span className="text-[11px] text-zinc-500">
-              custos fixos via env · receita real do mês ({finance?.reference})
-            </span>
-          </div>
-        )}
-        <div className="space-y-4">
-          <RuleBar
-            label="Variáveis"
-            value={variablePctReal ?? m.variablePctOfRevenue}
-            limit={40}
-            amountBrl={variableBrlReal ?? m.variableBrl}
-            inverse
+        <ul className="space-y-3">
+          <CostRow
+            icon={<Wallet className="w-4 h-4 text-zinc-400" />}
+            label="Gateway + impostos"
+            note="estimado em 10% da receita"
+            amountBrl={gatewayBrl}
           />
-          <RuleBar
-            label="Fixas"
-            value={fixedPctReal ?? m.fixedPctOfRevenue}
-            limit={20}
-            amountBrl={fixedBrlReal ?? m.fixedBrl}
-            inverse
+          <CostRow
+            icon={<Cpu className="w-4 h-4 text-zinc-400" />}
+            label="Custo de IA"
+            note={`real · US$ ${llmUsd.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} medido por execução`}
+            amountBrl={llmBrl}
+            realBadge
           />
-          <RuleBar
-            label="Margem op"
-            value={marginPctReal ?? m.marginPctOfRevenue}
-            limit={40}
-            amountBrl={marginBrlReal ?? m.marginBrl}
-          />
+        </ul>
+        <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-900 flex items-baseline justify-between">
+          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Total de custos diretos</span>
+          <span className="text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+            {formatBrl(directCosts)}
+          </span>
         </div>
-        {finance && !finance.isMethodPassing && finance.inflowsBrl > 0 && (
-          <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
-            Método 40/20/40 não está saudável · variáveis {finance.variablePct}% (≤40) · fixas {finance.fixedPct}% (≤20) · margem {finance.marginPct}% (≥40)
-          </p>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <BreakdownCard
-          title="Detalhe variáveis"
-          totalBrl={m.variableBrl}
-          lines={m.variableLines}
-        />
-        <BreakdownCard
-          title="Detalhe fixas"
-          totalBrl={m.fixedBrl}
-          lines={m.fixedLines}
-        />
       </div>
 
       <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5">
-        <div className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-500 font-medium mb-1">
-          Projeção 90 dias
+        <div className="flex items-baseline justify-between">
+          <div>
+            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              Contribuição do ZAP
+            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+              Receita − custos diretos. Quando positiva e crescente, o ZAP se capitaliza e remunera a CMOVE.AI.
+            </p>
+          </div>
+          <div className="text-right">
+            <div
+              className={`text-xl font-semibold tabular-nums ${
+                isHealthy ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-500'
+              }`}
+            >
+              {formatBrl(contribution)}
+            </div>
+            <div className="text-[11px] text-zinc-500 tabular-nums">{contributionPct}% da receita</div>
+          </div>
         </div>
-        <div className="text-sm text-zinc-500 dark:text-zinc-500 mb-5">
-          Rumo às {m.goalSep26Subscribers} assinantes em Set/26
-        </div>
-        <div className="grid grid-cols-4 gap-4">
-          {m.projection.map((p, i) => (
-            <ProjectionStep
-              key={p.month}
-              month={p.month}
-              revenue={p.revenueBrl}
-              subscribers={p.subscribers}
-              isLast={i === m.projection.length - 1}
-            />
-          ))}
-        </div>
+        {inflows === 0 && (
+          <p className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-400">
+            Sem receita em {reference} ainda · fase de investimento da CMOVE.AI no ZAP.
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
-function exportFinancialCsv(m: typeof financialMock) {
+function exportResultadoCsv(f: FinanceSnapshot, contribution: number) {
   const lines = [
     ['Métrica', 'Valor (BRL)'].join(','),
-    ['Entradas (MRR)', m.inflowsMrr].join(','),
-    ['Entradas (avulsas)', m.inflowsAdHoc].join(','),
-    [`Despesas variáveis (${m.variablePctOfRevenue}%)`, m.variableBrl].join(','),
-    [`Despesas fixas (${m.fixedPctOfRevenue}%)`, m.fixedBrl].join(','),
-    [`Margem operacional (${m.marginPctOfRevenue}%)`, m.marginBrl].join(','),
-    '',
-    'Detalhe variáveis,',
-    ...m.variableLines.map((l) => `"${l.label}",${l.amountBrl}`),
-    '',
-    'Detalhe fixas,',
-    ...m.fixedLines.map((l) => `"${l.label}",${l.amountBrl}`),
+    ['Receita (recebido)', f.inflowsBrl].join(','),
+    ['Gateway + impostos (est. 10%)', f.variableBrl].join(','),
+    ['Custo de IA (real)', f.llmCostMonthBrl].join(','),
+    ['Contribuição', contribution].join(','),
+    ['A receber 7 dias', f.receivable7dBrl].join(','),
   ];
   const csv = '﻿' + lines.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `financeiro-${m.reference.toLowerCase().replace('/', '-')}.csv`;
+  a.download = `resultado-zap-${f.reference}.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  toast.success(`CSV ${m.reference} exportado`);
+  toast.success(`CSV ${f.reference} exportado`);
 }
 
 function KpiPill({
@@ -321,113 +278,38 @@ function KpiPill({
   );
 }
 
-function RuleBar({
+function CostRow({
+  icon,
   label,
-  value,
-  limit,
+  note,
   amountBrl,
-  inverse,
+  realBadge,
 }: {
+  icon: React.ReactNode;
   label: string;
-  value: number;
-  limit: number;
+  note: string;
   amountBrl: number;
-  inverse?: boolean;
-}) {
-  const pct = Math.min(100, value);
-  const isOk = inverse ? value <= limit : value >= limit;
-  const color = isOk ? 'bg-emerald-500' : 'bg-amber-500';
-  const slack = inverse ? limit - value : value - limit;
-
-  return (
-    <div>
-      <div className="flex items-baseline justify-between mb-1.5">
-        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-          {label}
-        </span>
-        <span className="text-xs tabular-nums text-zinc-600 dark:text-zinc-400">
-          {value}% · {formatBrl(amountBrl)}
-          {isOk && (
-            <span className="ml-2 text-emerald-600 dark:text-emerald-400 text-[11px]">
-              {inverse ? `folga ${slack}%` : `+${slack}% acima da meta`}
-            </span>
-          )}
-        </span>
-      </div>
-      <div className="relative h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-        <div className={`absolute inset-y-0 left-0 ${color}`} style={{ width: `${pct}%` }} />
-        <div
-          className="absolute inset-y-0 w-px bg-zinc-400 dark:bg-zinc-600"
-          style={{ left: `${limit}%` }}
-          title={`Meta: ${limit}%`}
-        />
-      </div>
-    </div>
-  );
-}
-
-function BreakdownCard({
-  title,
-  totalBrl,
-  lines,
-}: {
-  title: string;
-  totalBrl: number;
-  lines: Array<{ label: string; amountBrl: number }>;
+  realBadge?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5">
-      <div className="flex items-baseline justify-between mb-4">
-        <div className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-500 font-medium">
-          {title}
-        </div>
-        <div className="text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-          {formatBrl(totalBrl)}
+    <li className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        {icon}
+        <div>
+          <div className="text-sm text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+            {label}
+            {realBadge && (
+              <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+                real
+              </span>
+            )}
+          </div>
+          <div className="text-[11px] text-zinc-500 dark:text-zinc-500">{note}</div>
         </div>
       </div>
-      <ul className="space-y-2">
-        {lines.map((l, i) => (
-          <li
-            key={i}
-            className="flex justify-between items-baseline text-sm py-1.5 border-b border-zinc-100 dark:border-zinc-900 last:border-0"
-          >
-            <span className="text-zinc-700 dark:text-zinc-300">{l.label}</span>
-            <span className="tabular-nums text-zinc-900 dark:text-zinc-100 font-medium">
-              {formatBrl(l.amountBrl)}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function ProjectionStep({
-  month,
-  revenue,
-  subscribers,
-  isLast,
-}: {
-  month: string;
-  revenue: number;
-  subscribers: number;
-  isLast?: boolean;
-}) {
-  return (
-    <div className={isLast ? 'border-l-2 border-emerald-500 pl-3' : 'border-l border-zinc-200 dark:border-zinc-800 pl-3'}>
-      <div className="text-[10px] uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-500 font-medium">
-        {month}
-      </div>
-      <div
-        className={`text-lg font-semibold tabular-nums mt-1 ${
-          isLast ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-zinc-100'
-        }`}
-      >
-        {formatBrlCompact(revenue)}
-      </div>
-      <div className="text-xs text-zinc-500 dark:text-zinc-500 tabular-nums mt-0.5">
-        {subscribers} assinantes
-      </div>
-    </div>
+      <span className="text-sm tabular-nums font-medium text-zinc-900 dark:text-zinc-100">
+        {formatBrl(amountBrl)}
+      </span>
+    </li>
   );
 }

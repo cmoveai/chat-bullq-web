@@ -10,7 +10,6 @@ import {
   TrendingUp,
   BarChart3,
   LifeBuoy,
-  ScrollText,
   ArrowLeft,
 } from 'lucide-react';
 
@@ -34,7 +33,7 @@ const SECTIONS: Array<{
   {
     group: 'Finanças',
     items: [
-      { label: 'Fluxo financeiro', href: '/super-admin/financeiro', icon: TrendingUp },
+      { label: 'Resultado do ZAP', href: '/super-admin/financeiro', icon: TrendingUp },
       { label: 'Analytics', href: '/super-admin/analytics', icon: BarChart3 },
     ],
   },
@@ -42,7 +41,6 @@ const SECTIONS: Array<{
     group: 'Operação',
     items: [
       { label: 'Suporte', href: '/super-admin/suporte', icon: LifeBuoy },
-      { label: 'Logs', href: '/super-admin/logs', icon: ScrollText },
     ],
   },
 ];
