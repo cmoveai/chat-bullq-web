@@ -19,19 +19,18 @@ export default function SuperAdminLayout({
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (!token) {
-      router.replace('/login');
+      router.replace('/super-admin-login');
       return;
     }
 
-    if (user) {
-      if (user.globalRole !== 'SUPER_ADMIN') {
-        router.replace('/home');
-        return;
-      }
+    // Confia no cache só quando ele JÁ confirma SUPER_ADMIN.
+    if (user?.globalRole === 'SUPER_ADMIN') {
       setIsLoading(false);
       return;
     }
 
+    // Sem user, ou cache possivelmente desatualizado → revalida no backend
+    // (fonte da verdade) antes de redirecionar. Evita falso /home por cache.
     authService
       .getMe()
       .then((data) => {
@@ -43,7 +42,7 @@ export default function SuperAdminLayout({
         setIsLoading(false);
       })
       .catch(() => {
-        router.replace('/login');
+        router.replace('/super-admin-login');
       });
   }, [user, setAuth, router]);
 

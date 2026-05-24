@@ -7,15 +7,17 @@ interface SparklineProps {
 export function Sparkline({ data, className = '', color = 'currentColor' }: SparklineProps) {
   if (data.length === 0) return null;
 
-  const max = Math.max(...data);
-  const min = Math.min(...data);
+  // 1 ponto vira linha plana (evita divisão por zero → NaN nos pontos do SVG)
+  const series = data.length === 1 ? [data[0], data[0]] : data;
+  const max = Math.max(...series);
+  const min = Math.min(...series);
   const range = max - min || 1;
   const width = 100;
   const height = 30;
 
-  const points = data
+  const points = series
     .map((v, i) => {
-      const x = (i / (data.length - 1)) * width;
+      const x = (i / (series.length - 1)) * width;
       const y = height - ((v - min) / range) * height;
       return `${x},${y}`;
     })

@@ -10,8 +10,8 @@ import {
   TrendingUp,
   BarChart3,
   LifeBuoy,
-  ScrollText,
   ArrowLeft,
+  LogOut,
 } from 'lucide-react';
 
 const SECTIONS: Array<{
@@ -34,7 +34,7 @@ const SECTIONS: Array<{
   {
     group: 'Finanças',
     items: [
-      { label: 'Fluxo financeiro', href: '/super-admin/financeiro', icon: TrendingUp },
+      { label: 'Resultado do ZAP', href: '/super-admin/financeiro', icon: TrendingUp },
       { label: 'Analytics', href: '/super-admin/analytics', icon: BarChart3 },
     ],
   },
@@ -42,13 +42,20 @@ const SECTIONS: Array<{
     group: 'Operação',
     items: [
       { label: 'Suporte', href: '/super-admin/suporte', icon: LifeBuoy },
-      { label: 'Logs', href: '/super-admin/logs', icon: ScrollText },
     ],
   },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+
+  function handleLogout() {
+    ['access_token', 'refresh_token', 'active_org_id'].forEach((k) => localStorage.removeItem(k));
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith('sb-'))
+      .forEach((k) => localStorage.removeItem(k));
+    window.location.href = '/super-admin-login';
+  }
 
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
@@ -59,8 +66,8 @@ export function Sidebar() {
             CMOVE.AI-ZAP
           </span>
         </div>
-        <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-1.5 tracking-tight">
-          Super Admin
+        <div style={{ fontFamily: 'var(--font-montserrat)' }} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-1.5 tracking-tight">
+          Admin Global
         </div>
       </div>
 
@@ -99,7 +106,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-zinc-200 dark:border-zinc-800 p-3">
+      <div className="border-t border-zinc-200 dark:border-zinc-800 p-3 space-y-0.5">
         <Link
           href="/home"
           className="flex items-center gap-2 px-2 py-2 text-xs text-zinc-500 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors"
@@ -107,6 +114,13 @@ export function Sidebar() {
           <ArrowLeft className="w-3.5 h-3.5" />
           Voltar pro painel tenant
         </Link>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2 px-2 py-2 text-xs text-zinc-500 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          Sair
+        </button>
       </div>
     </aside>
   );

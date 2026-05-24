@@ -215,10 +215,20 @@ function PaymentCard({
         </div>
       )}
 
+      {cobranca.pix_emv && (
+        <button
+          onClick={onCopy}
+          className="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-[#1DB954] text-black rounded-xl hover:brightness-110 transition-all font-semibold"
+        >
+          {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          {copied ? 'Código Pix copiado!' : 'Pagar com Pix'}
+        </button>
+      )}
+
       <button
         onClick={onMarkPaid}
         disabled={marking}
-        className="w-full inline-flex items-center justify-center gap-2 py-3 bg-zinc-900 dark:bg-zinc-100 text-zinc-100 dark:text-zinc-900 rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors font-medium disabled:opacity-50"
+        className="w-full inline-flex items-center justify-center gap-2 py-3 border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors font-medium disabled:opacity-50"
       >
         {marking ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
         Já paguei
