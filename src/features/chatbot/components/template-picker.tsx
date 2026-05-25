@@ -31,17 +31,22 @@ export function TemplatePicker({ open, onClose }: TemplatePickerProps) {
         description: template.flowDescription,
         triggerType: template.triggerType,
       });
-      // Persiste os nodes do template · edges com targetKey ficam em data._templateEdges
-      // pra serem resolvidas pra targetNodeId real depois do save (workaround simples)
+      // Usamos o "key" lógico do template como id do nó; o backend remapeia
+      // key→uuid e reescreve os targetNodeId das edges. Assim o template já
+      // nasce com as conexões funcionando (sem workaround de _templateEdges).
       await chatbotService.saveNodes(
         flow.id,
         template.nodes.map((n) => ({
+          id: n.key,
           type: n.type,
           name: n.name,
           positionX: n.positionX,
           positionY: n.positionY,
-          data: { ...n.data, _templateKey: n.key, _templateEdges: n.edges },
-          edges: [], // resolvidas depois no editor de fluxo via templateKey mapping
+          data: n.data,
+          edges: n.edges.map((e) => ({
+            targetNodeId: e.targetKey,
+            condition: e.condition,
+          })),
         })),
       );
       queryClient.invalidateQueries({ queryKey: ['chatbot-flows'] });

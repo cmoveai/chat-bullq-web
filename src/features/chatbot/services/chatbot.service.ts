@@ -51,7 +51,7 @@ export const chatbotService = {
     await api.delete(`/chatbot-flows/${id}`);
   },
 
-  async saveNodes(id: string, nodes: Omit<ChatbotNode, 'id' | 'flowId'>[]): Promise<ChatbotNode[]> {
+  async saveNodes(id: string, nodes: Omit<ChatbotNode, 'flowId'>[]): Promise<ChatbotNode[]> {
     const { data } = await api.post(`/chatbot-flows/${id}/nodes`, { nodes });
     return data.data;
   },
