@@ -12,7 +12,7 @@
  */
 
 export interface ChatbotTemplateNode {
-  type: 'START' | 'MESSAGE' | 'MENU' | 'CONDITION' | 'WAIT' | 'TRANSFER' | 'END_FLOW';
+  type: 'START' | 'MESSAGE' | 'MENU' | 'CONDITION' | 'WAIT' | 'ACTION' | 'TRANSFER' | 'END_FLOW';
   name: string | null;
   positionX: number;
   positionY: number;

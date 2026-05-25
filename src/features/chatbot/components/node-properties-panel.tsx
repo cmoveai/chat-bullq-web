@@ -125,6 +125,26 @@ export function NodePropertiesPanel({ node, onUpdate, onDelete, onClose }: NodeP
           </div>
         )}
 
+        {node.type === 'ACTION' && (
+          <>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              Salva os dados capturados no cadastro do contato. Use {'{{variavel}}'} pra puxar o que o cliente respondeu (ex: o nome que um nó Aguardar salvou).
+            </p>
+            {([['name', 'Nome'], ['email', 'E-mail'], ['phone', 'Telefone'], ['notes', 'Notas']] as const).map(([field, label]) => (
+              <div key={field}>
+                <label className={labelCls}>{label}</label>
+                <input
+                  className={inputCls}
+                  value={(data.fields?.[field]) || ''}
+                  onChange={(e) => update('fields', { ...(data.fields || {}), [field]: e.target.value })}
+                  placeholder={field === 'name' ? '{{nome}}' : field === 'email' ? '{{email}}' : field === 'phone' ? '{{telefone}}' : ''}
+                />
+              </div>
+            ))}
+            <p className="text-[10px] text-zinc-400">Campos em branco não são alterados no contato.</p>
+          </>
+        )}
+
         {node.type !== 'START' && node.type !== 'END_FLOW' && (
           <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
             <button

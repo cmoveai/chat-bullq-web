@@ -23,6 +23,7 @@ import { NodeToolbar } from './node-toolbar';
 import { NodePropertiesPanel } from './node-properties-panel';
 import { ChatSimulator } from './chat-simulator';
 import { FlowChannelsButton } from './flow-channels-button';
+import { FlowSettingsButton } from './flow-settings-button';
 import { chatbotService, type ChatbotFlow, type ChatbotNode } from '../services/chatbot.service';
 
 interface FlowEditorProps {
@@ -106,6 +107,7 @@ export function FlowEditor({ flow }: FlowEditorProps) {
     if (type === 'MENU') { defaultData.title = ''; defaultData.options = [{ label: 'Opção 1', value: 'opt_1' }]; }
     if (type === 'CONDITION') { defaultData.variable = ''; defaultData.operator = 'equals'; defaultData.value = ''; }
     if (type === 'WAIT') { defaultData.prompt = ''; defaultData.saveAs = 'lastInput'; }
+    if (type === 'ACTION') { defaultData.action = 'SAVE_CONTACT'; defaultData.fields = { name: '{{nome}}' }; }
     if (type === 'TRANSFER') defaultData.message = 'Transferindo para um atendente...';
 
     const newNode: Node = {
@@ -154,6 +156,7 @@ export function FlowEditor({ flow }: FlowEditorProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <FlowSettingsButton flow={flow} />
           <FlowChannelsButton flow={flow} />
           <button
             onClick={() => setShowSimulator(!showSimulator)}
