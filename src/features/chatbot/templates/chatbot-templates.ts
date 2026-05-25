@@ -2,6 +2,13 @@
  * Templates de automação prontos por nicho.
  * Cada template gera um ChatbotFlow com nodes pré-configurados.
  * Cliente escolhe template → backend cria flow + persiste nodes via saveNodes().
+ *
+ * Contrato dos nodes (precisa bater com os executores do engine):
+ * - MESSAGE  data.message       · interpola {{var}}
+ * - WAIT     data.saveAs        · captura a resposta na variável (sem prompt = silencioso)
+ * - MENU     data.title + data.options [{label,value}] · interpola title · salva escolha em lastMenuSelection
+ * - CONDITION data.variable/operator/value · ramifica por edge.condition 'true'/'false'
+ * - TRANSFER data.message       · interpola {{var}} · manda pra fila humana
  */
 
 export interface ChatbotTemplateNode {
@@ -46,12 +53,12 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
     ],
     preview: [
       'Olá! Aqui é a Bia, assistente da clínica. Pra começar, qual seu nome?',
-      'Prazer em conhecer, {name}! Você quer agendar uma consulta nova ou já é paciente?',
+      'Prazer em conhecer, Ana! Você quer agendar uma consulta nova ou já é paciente?',
       'Perfeito! Vou direcionar pra recepção agora. Em até 5 min alguém te chama por aqui.',
     ],
     flowName: 'Agendamento Clínica',
     flowDescription: 'Recepção, qualificação e transferência pra recepcionista',
-    triggerType: 'NEW_CONVERSATION',
+    triggerType: 'FIRST_MESSAGE',
     nodes: [
       {
         key: 'start',
@@ -80,7 +87,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         name: 'Aguarda nome',
         positionX: 100,
         positionY: 360,
-        data: { variable: 'name' },
+        data: { saveAs: 'name' },
         edges: [{ targetKey: 'menu-tipo' }],
       },
       {
@@ -90,9 +97,13 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionX: 100,
         positionY: 500,
         data: {
-          message:
-            'Prazer em conhecer, {name}! Você quer agendar uma consulta nova ou já é paciente?',
-          options: ['Consulta nova', 'Já sou paciente', 'Cancelar/remarcar'],
+          title:
+            'Prazer em conhecer, {{name}}! Você quer agendar uma consulta nova ou já é paciente?',
+          options: [
+            { label: 'Consulta nova', value: 'nova' },
+            { label: 'Já sou paciente', value: 'paciente' },
+            { label: 'Cancelar/remarcar', value: 'remarcar' },
+          ],
         },
         edges: [{ targetKey: 'transfer-recepcao' }],
       },
@@ -104,8 +115,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionY: 660,
         data: {
           message:
-            'Perfeito! Vou direcionar pra recepção agora. Em até 5 min alguém te chama por aqui.',
-          department: 'Recepção',
+            'Perfeito, {{name}}! Vou direcionar pra recepção agora. Em até 5 min alguém te chama por aqui.',
         },
         edges: [],
       },
@@ -125,13 +135,13 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
       'Reduz pergunta repetida "tem horário sábado?"',
     ],
     preview: [
-      'Oi! 💖 Bem-vinda ao nosso salão. Vou te ajudar a marcar seu horário. Qual seu nome?',
+      'Oi! Bem-vinda ao nosso salão. Vou te ajudar a marcar seu horário. Qual seu nome?',
       'Que serviço você quer fazer hoje?',
-      'Anotei aqui. Já vou passar pra Cami que cuida da agenda. Em 1 min ela responde!',
+      'Anotei aqui, Ana. Já vou passar pra Cami que cuida da agenda. Em 1 min ela responde!',
     ],
     flowName: 'Agendamento Salão',
     flowDescription: 'Coleta nome + serviço + transfere pra atendente',
-    triggerType: 'NEW_CONVERSATION',
+    triggerType: 'FIRST_MESSAGE',
     nodes: [
       {
         key: 'start',
@@ -150,7 +160,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionY: 220,
         data: {
           message:
-            'Oi! 💖 Bem-vinda ao nosso salão. Vou te ajudar a marcar seu horário. Qual seu nome?',
+            'Oi! Bem-vinda ao nosso salão. Vou te ajudar a marcar seu horário. Qual seu nome?',
         },
         edges: [{ targetKey: 'wait-name' }],
       },
@@ -160,7 +170,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         name: 'Aguarda nome',
         positionX: 100,
         positionY: 360,
-        data: { variable: 'name' },
+        data: { saveAs: 'name' },
         edges: [{ targetKey: 'menu-servico' }],
       },
       {
@@ -170,13 +180,13 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionX: 100,
         positionY: 500,
         data: {
-          message: 'Que serviço você quer fazer hoje?',
+          title: 'Que serviço você quer fazer hoje, {{name}}?',
           options: [
-            'Corte',
-            'Coloração',
-            'Escova',
-            'Manicure/Pedicure',
-            'Outro',
+            { label: 'Corte', value: 'corte' },
+            { label: 'Coloração', value: 'coloracao' },
+            { label: 'Escova', value: 'escova' },
+            { label: 'Manicure/Pedicure', value: 'manicure' },
+            { label: 'Outro', value: 'outro' },
           ],
         },
         edges: [{ targetKey: 'transfer-cami' }],
@@ -189,8 +199,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionY: 660,
         data: {
           message:
-            'Anotei aqui {name}. Já vou passar pra Cami que cuida da agenda. Em 1 min ela responde!',
-          department: 'Atendimento',
+            'Anotei aqui, {{name}}. Já vou passar pra Cami que cuida da agenda. Em 1 min ela responde!',
         },
         edges: [],
       },
@@ -211,12 +220,12 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
     ],
     preview: [
       'Oi! Vi que você se interessou pelo nosso programa. Posso te chamar pelo seu nome?',
-      'Pra te mandar o link da imersão gratuita, qual seu melhor email?',
-      'Você já tem alguma experiência com {nicho} ou está começando agora?',
+      'Prazer, Ana! Pra te mandar o link da imersão gratuita, qual seu melhor email?',
+      'Você já está no mercado ou está começando agora?',
     ],
     flowName: 'Captura Lançamento',
     flowDescription: 'Captura lead + qualificação por experiência',
-    triggerType: 'NEW_CONVERSATION',
+    triggerType: 'FIRST_MESSAGE',
     nodes: [
       {
         key: 'start',
@@ -245,7 +254,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         name: 'Aguarda nome',
         positionX: 100,
         positionY: 360,
-        data: { variable: 'name' },
+        data: { saveAs: 'name' },
         edges: [{ targetKey: 'msg-email' }],
       },
       {
@@ -256,7 +265,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionY: 500,
         data: {
           message:
-            'Prazer, {name}! Pra te mandar o link da imersão gratuita, qual seu melhor email?',
+            'Prazer, {{name}}! Pra te mandar o link da imersão gratuita, qual seu melhor email?',
         },
         edges: [{ targetKey: 'wait-email' }],
       },
@@ -266,7 +275,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         name: 'Aguarda email',
         positionX: 100,
         positionY: 640,
-        data: { variable: 'email' },
+        data: { saveAs: 'email' },
         edges: [{ targetKey: 'menu-experiencia' }],
       },
       {
@@ -276,12 +285,11 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionX: 100,
         positionY: 780,
         data: {
-          message:
-            'Você já tem alguma experiência ou está começando agora?',
+          title: 'Você já está no mercado ou está começando agora?',
           options: [
-            'Já estou no mercado',
-            'Estou começando agora',
-            'Só curiosidade',
+            { label: 'Já estou no mercado', value: 'mercado' },
+            { label: 'Estou começando agora', value: 'comecando' },
+            { label: 'Só curiosidade', value: 'curiosidade' },
           ],
         },
         edges: [{ targetKey: 'condition-quente' }],
@@ -292,7 +300,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         name: 'Lead quente?',
         positionX: 100,
         positionY: 940,
-        data: { field: 'menu-experiencia', expected: 'Já estou no mercado' },
+        data: { variable: 'lastMenuSelection', operator: 'equals', value: 'mercado' },
         edges: [
           { targetKey: 'transfer-vendas', condition: 'true' },
           { targetKey: 'msg-aquecimento', condition: 'false' },
@@ -306,8 +314,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionY: 1080,
         data: {
           message:
-            'Show! Vou te conectar com nosso time de vendas em 1 min · você é prioridade.',
-          department: 'Vendas',
+            'Show, {{name}}! Vou te conectar com nosso time de vendas em 1 min · você é prioridade.',
         },
         edges: [],
       },
@@ -319,7 +326,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionY: 1080,
         data: {
           message:
-            'Te incluí na nossa lista. Vai chegar conteúdo gratuito por email essa semana. Bora começar! 🚀',
+            'Te incluí na nossa lista, {{name}}. Vai chegar conteúdo gratuito no seu email essa semana. Bora começar!',
         },
         edges: [{ targetKey: 'end' }],
       },
@@ -354,7 +361,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
     ],
     flowName: 'Atendimento Loja',
     flowDescription: 'Triagem entre pedido em andamento vs cliente novo',
-    triggerType: 'NEW_CONVERSATION',
+    triggerType: 'FIRST_MESSAGE',
     nodes: [
       {
         key: 'start',
@@ -383,13 +390,13 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionX: 100,
         positionY: 360,
         data: {
-          message:
+          title:
             'Você quer falar sobre um pedido que já fez ou é uma dúvida nova?',
           options: [
-            'Rastrear pedido',
-            'Trocar/devolver',
-            'Dúvida sobre produto',
-            'Falar com atendente',
+            { label: 'Rastrear pedido', value: 'rastrear' },
+            { label: 'Trocar/devolver', value: 'trocar' },
+            { label: 'Dúvida sobre produto', value: 'duvida' },
+            { label: 'Falar com atendente', value: 'atendente' },
           ],
         },
         edges: [{ targetKey: 'condition-pedido' }],
@@ -400,7 +407,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         name: 'É sobre pedido?',
         positionX: 100,
         positionY: 520,
-        data: { field: 'menu-tipo', expected: 'Rastrear pedido' },
+        data: { variable: 'lastMenuSelection', operator: 'equals', value: 'rastrear' },
         edges: [
           { targetKey: 'msg-pedido', condition: 'true' },
           { targetKey: 'transfer-atendente', condition: 'false' },
@@ -426,7 +433,6 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionY: 800,
         data: {
           message: 'Já vou consultar e volto em 2 min com o status.',
-          department: 'Pedidos',
         },
         edges: [],
       },
@@ -438,7 +444,6 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionY: 660,
         data: {
           message: 'Vou te conectar com um atendente humano agora.',
-          department: 'Atendimento',
         },
         edges: [],
       },
@@ -460,11 +465,11 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
     preview: [
       'Olá! Aqui é a Lia, assistente do escritório. Posso te chamar pelo seu nome?',
       'Sua dúvida é em qual área? Trabalhista, civil, família, tributário?',
-      'Anotei. Vou direcionar pra advogada responsável e ela te chama em até 1h.',
+      'Anotei, Ana. Vou direcionar pra advogada responsável e ela te chama em até 1h.',
     ],
     flowName: 'Triagem Jurídica',
     flowDescription: 'Captura nome + área de atuação e roteia pro advogado',
-    triggerType: 'NEW_CONVERSATION',
+    triggerType: 'FIRST_MESSAGE',
     nodes: [
       {
         key: 'start',
@@ -493,7 +498,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         name: 'Aguarda nome',
         positionX: 100,
         positionY: 360,
-        data: { variable: 'name' },
+        data: { saveAs: 'name' },
         edges: [{ targetKey: 'menu-area' }],
       },
       {
@@ -503,14 +508,14 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionX: 100,
         positionY: 500,
         data: {
-          message:
-            'Sua dúvida é em qual área? Trabalhista, civil, família, tributário?',
+          title:
+            'Prazer, {{name}}! Sua dúvida é em qual área?',
           options: [
-            'Trabalhista',
-            'Civil',
-            'Família',
-            'Tributário',
-            'Outra área',
+            { label: 'Trabalhista', value: 'trabalhista' },
+            { label: 'Civil', value: 'civil' },
+            { label: 'Família', value: 'familia' },
+            { label: 'Tributário', value: 'tributario' },
+            { label: 'Outra área', value: 'outra' },
           ],
         },
         edges: [{ targetKey: 'transfer-advogado' }],
@@ -523,8 +528,7 @@ export const CHATBOT_TEMPLATES: ChatbotTemplate[] = [
         positionY: 660,
         data: {
           message:
-            'Anotei {name}. Vou direcionar pra advogada responsável e ela te chama em até 1h.',
-          department: 'Jurídico',
+            'Anotei, {{name}}. Vou direcionar pra advogada responsável e ela te chama em até 1h.',
         },
         edges: [],
       },
