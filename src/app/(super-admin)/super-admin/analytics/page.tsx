@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-5">
       <HeroCard
-        eyebrow="Analytics do ZAP"
+        eyebrow="Analytics do EIXXO"
         caption="Crescimento de receita recorrente e de assinantes"
         value={formatBrl(mrrNow)}
         meta={[
@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
 
       {series.length === 0 && (
         <p className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-400">
-          Sem histórico suficiente ainda · os gráficos preenchem conforme o ZAP acumula dias.
+          Sem histórico suficiente ainda · os gráficos preenchem conforme o EIXXO acumula dias.
         </p>
       )}
     </div>

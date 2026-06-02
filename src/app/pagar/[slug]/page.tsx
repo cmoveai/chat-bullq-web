@@ -106,7 +106,7 @@ export default function PagarPage({ params }: { params: Promise<{ slug: string }
       <div className="max-w-md mx-auto">
         <header className="text-center mb-8">
           <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-500 mb-2 font-medium">
-            CMOVE.AI-ZAP
+            EIXXO
           </div>
           <h1 className="text-xl font-semibold tracking-tight">{cobranca.etapa}</h1>
           <p className="text-sm text-zinc-500 mt-1">Para {cobranca.cliente_nome}</p>

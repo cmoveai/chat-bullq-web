@@ -18,8 +18,7 @@ export function LandingPage() {
       <header className="sticky top-0 z-40 border-b border-white/5 bg-zinc-950/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2 text-base font-extrabold tracking-tight">
-            CMOVE<span className="text-cyan-400">.AI</span>{' '}
-            <span className="text-emerald-400">ZAP</span>
+            EIXXO
           </div>
           <nav className="hidden gap-8 text-sm text-zinc-400 md:flex">
             <a href="#funcionalidades" className="hover:text-white">Funcionalidades</a>
@@ -37,7 +36,7 @@ export function LandingPage() {
               onClick={() => setModalPlan(PLANS[1])}
               className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400"
             >
-              Testar 30 dias
+              Testar 7 dias
             </button>
           </div>
         </div>
@@ -65,7 +64,7 @@ export function LandingPage() {
               onClick={() => setModalPlan(PLANS[1])}
               className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-base font-semibold text-zinc-950 hover:bg-emerald-400"
             >
-              Testar 30 dias
+              Testar 7 dias
               <ArrowRight className="h-4 w-4" />
             </button>
             <Link
@@ -78,7 +77,7 @@ export function LandingPage() {
 
           <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-zinc-500">
             <span className="inline-flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-400" /> Garantia de 30 dias
+              <ShieldCheck className="h-4 w-4 text-emerald-400" /> Garantia de 7 dias
             </span>
             <span className="inline-flex items-center gap-2">
               <Bot className="h-4 w-4 text-cyan-400" /> Agente IA personalizado
@@ -218,7 +217,7 @@ export function LandingPage() {
 
           <p className="mt-10 text-center text-sm text-zinc-500">
             Todos os planos com{' '}
-            <span className="text-emerald-400">trial de 30 dias</span> · garantia de
+            <span className="text-emerald-400">trial de 7 dias</span> · garantia de
             satisfação · cartão ou Pix
           </p>
         </div>
@@ -231,13 +230,13 @@ export function LandingPage() {
             Comece em minutos. Cancele quando quiser.
           </h2>
           <p className="mt-4 text-zinc-400">
-            Trial de 30 dias com garantia de devolução. Sem fidelidade.
+            Trial de 7 dias com garantia de devolução. Sem fidelidade.
           </p>
           <button
             onClick={() => setModalPlan(PLANS[1])}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-base font-bold text-zinc-950 hover:bg-emerald-400"
           >
-            Testar 30 dias grátis
+            Testar 7 dias grátis
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

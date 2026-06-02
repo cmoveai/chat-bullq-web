@@ -94,7 +94,7 @@ export function VerifyEmailForm() {
             E-mail confirmado
           </h2>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-            Tudo certo · sua conta está ativa. Bem-vinda à CMOVE.AI-ZAP. Vamos
+            Tudo certo · sua conta está ativa. Bem-vinda à EIXXO. Vamos
             começar a operação.
           </p>
         </div>

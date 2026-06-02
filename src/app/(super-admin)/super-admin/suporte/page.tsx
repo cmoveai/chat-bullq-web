@@ -139,7 +139,7 @@ export default function SuportePage() {
     <>
       <div className="space-y-5">
         <HeroCard
-          eyebrow="Suporte · CMOVE.AI-ZAP"
+          eyebrow="Suporte · EIXXO"
           caption="Tickets abertos agora"
           value={String(counts.open)}
           meta={[
@@ -161,7 +161,7 @@ export default function SuportePage() {
               variant: 'primary',
               onClick: () =>
                 toast('Novo ticket', {
-                  description: 'Abertura manual chega quando ZAP plugar canal de suporte interno',
+                  description: 'Abertura manual chega quando EIXXO plugar canal de suporte interno',
                 }),
             },
             {

@@ -50,9 +50,9 @@ function formatBrl(value: number) {
   }).format(value);
 }
 
-// Resultado do ZAP como unidade de negócio: receita do produto menos os custos
+// Resultado do EIXXO como unidade de negócio: receita do produto menos os custos
 // DIRETOS dele (gateway + IA). Custo fixo da empresa e 40/20/40 consolidado NÃO
-// entram aqui — vivem no cmove.ai/admin. O ZAP reporta a contribuição pra lá.
+// entram aqui — vivem no cmove.ai/admin. O EIXXO reporta a contribuição pra lá.
 export default function ResultadoZapPage() {
   const { data: invoicesResp } = useQuery<InvoicesResponse>({
     queryKey: ['super-admin', 'invoices'],
@@ -98,14 +98,14 @@ export default function ResultadoZapPage() {
   return (
     <div className="space-y-5">
       <HeroCard
-        eyebrow={`Resultado do ZAP · ${reference}`}
+        eyebrow={`Resultado do EIXXO · ${reference}`}
         caption="Margem de contribuição do mês"
         value={formatBrl(contribution)}
         meta={[
           {
             label: `${contributionPct}% de contribuição`,
             trend: isHealthy ? 'up' : 'down',
-            trendLabel: isHealthy ? 'o ZAP se paga' : 'ainda no investimento',
+            trendLabel: isHealthy ? 'o EIXXO se paga' : 'ainda no investimento',
           },
           { label: `Receita: ${formatBrl(inflows)}` },
           { label: `Custos diretos: ${formatBrl(directCosts)}` },
@@ -154,7 +154,7 @@ export default function ResultadoZapPage() {
       <header>
         <h2 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 inline-flex items-center gap-2">
           <Wallet className="w-3.5 h-3.5 text-zinc-500" />
-          Custos diretos do ZAP
+          Custos diretos do EIXXO
         </h2>
         <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
           Só o que o produto consome. Custo fixo da empresa e 40/20/40 consolidado ficam no cmove.ai/admin.
@@ -189,10 +189,10 @@ export default function ResultadoZapPage() {
         <div className="flex items-baseline justify-between">
           <div>
             <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-              Contribuição do ZAP
+              Contribuição do EIXXO
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-              Receita − custos diretos. Quando positiva e crescente, o ZAP se capitaliza e remunera a CMOVE.AI.
+              Receita − custos diretos. Quando positiva e crescente, o EIXXO se capitaliza e remunera a CMOVE.AI.
             </p>
           </div>
           <div className="text-right">
@@ -208,7 +208,7 @@ export default function ResultadoZapPage() {
         </div>
         {inflows === 0 && (
           <p className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-400">
-            Sem receita em {reference} ainda · fase de investimento da CMOVE.AI no ZAP.
+            Sem receita em {reference} ainda · fase de investimento da CMOVE.AI no EIXXO.
           </p>
         )}
       </div>

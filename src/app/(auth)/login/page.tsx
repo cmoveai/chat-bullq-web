@@ -13,8 +13,7 @@ export default function LoginPage() {
         {/* brand */}
         <div className="relative">
           <div className="flex items-center gap-2 text-base font-extrabold tracking-tight">
-            CMOVE<span className="text-cyan-400">.AI</span>{' '}
-            <span className="text-emerald-400">ZAP</span>
+            EIXXO
           </div>
         </div>
 
@@ -92,8 +91,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* mobile brand */}
           <div className="mb-8 flex items-center justify-center gap-2 text-base font-extrabold tracking-tight text-zinc-950 dark:text-white lg:hidden">
-            CMOVE<span className="text-cyan-500">.AI</span>{' '}
-            <span className="text-emerald-500">ZAP</span>
+            EIXXO
           </div>
           <LoginForm />
         </div>

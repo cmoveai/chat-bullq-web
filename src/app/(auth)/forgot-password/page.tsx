@@ -10,8 +10,7 @@ export default function ForgotPasswordPage() {
 
         <div className="relative">
           <div className="flex items-center gap-2 text-base font-extrabold tracking-tight">
-            CMOVE<span className="text-cyan-400">.AI</span>{' '}
-            <span className="text-emerald-400">ZAP</span>
+            EIXXO
           </div>
         </div>
 
@@ -84,8 +83,7 @@ export default function ForgotPasswordPage() {
       <div className="flex w-full flex-1 items-center justify-center bg-white px-6 py-12 dark:bg-zinc-950 lg:px-12">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex items-center justify-center gap-2 text-base font-extrabold tracking-tight text-zinc-950 dark:text-white lg:hidden">
-            CMOVE<span className="text-cyan-500">.AI</span>{' '}
-            <span className="text-emerald-500">ZAP</span>
+            EIXXO
           </div>
           <ForgotPasswordForm />
         </div>

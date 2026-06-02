@@ -141,7 +141,7 @@ export function RegisterForm() {
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {inviteInfo
             ? 'Preencha pra entrar no time.'
-            : 'Trial de 30 dias · garantia de devolução · cancele quando quiser.'}
+            : 'Trial de 7 dias · garantia de devolução · cancele quando quiser.'}
         </p>
       </div>
 
@@ -326,7 +326,7 @@ export function RegisterForm() {
               >
                 Termos de Uso e Política de Privacidade
               </a>{' '}
-              do CMOVE.AI-ZAP.
+              do EIXXO.
             </span>
           </label>
         )}

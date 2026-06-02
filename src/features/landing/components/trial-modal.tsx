@@ -81,12 +81,11 @@ export function TrialModal({ plan, cycle, onClose }: Props) {
         </button>
 
         <div className="mb-2 flex items-center gap-2 text-base font-extrabold tracking-tight text-white">
-          CMOVE<span className="text-cyan-400">.AI</span>{' '}
-          <span className="text-emerald-400">ZAP</span>
+          EIXXO
         </div>
 
         <h2 className="mt-4 text-2xl font-black text-white">
-          Comece seu trial de 30 dias
+          Comece seu trial de 7 dias
         </h2>
         <p className="mt-1 text-sm text-zinc-400">
           Plano <span className="text-emerald-400">{plan.name}</span> · R${' '}

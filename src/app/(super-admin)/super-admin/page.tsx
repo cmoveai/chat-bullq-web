@@ -197,7 +197,7 @@ export default function SuperAdminVisaoGeralPage() {
     <div className="space-y-5">
       <header className="flex items-end justify-between flex-wrap gap-3 mb-1">
         <p className="text-sm text-zinc-500 dark:text-zinc-500">
-          Bom te ver de volta · veja a saúde geral do ZAP.
+          Bom te ver de volta · veja a saúde geral do EIXXO.
         </p>
         <div className="text-xs text-zinc-500 dark:text-zinc-500">
           Período · <span className="text-zinc-900 dark:text-zinc-100 font-medium">Mai/2026</span>
@@ -295,7 +295,7 @@ function HeroMrrCard({
       <div className="relative">
         <div className="flex items-center justify-between mb-2">
           <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-400 font-medium">
-            Conta principal · CMOVE.AI-ZAP
+            Conta principal · EIXXO
           </div>
           <span className="text-[10px] uppercase tracking-[0.14em] text-emerald-400 font-semibold border border-emerald-700/60 rounded px-1.5 py-0.5">
             real

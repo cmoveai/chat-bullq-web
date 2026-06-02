@@ -6,8 +6,8 @@ import { Providers } from '@/components/providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'CMOVE.AI-ZAP',
-  description: 'CMOVE.AI · Atendimento omnichannel WhatsApp + Instagram com agents IA',
+  title: 'EIXXO',
+  description: 'EIXXO · Atendimento omnichannel WhatsApp + Instagram com agents IA',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
