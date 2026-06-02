@@ -82,6 +82,24 @@ export const channelsService = {
     return data.data;
   },
 
+  /**
+   * Conecta um número WhatsApp via Embedded Signup (Tech Provider). Recebe o
+   * `code` do FB Login + waba/phone IDs e o backend troca por token, assina o
+   * app na WABA e cria o canal — sem colar token na mão.
+   */
+  async embeddedSignup(payload: {
+    code: string;
+    wabaId: string;
+    phoneNumberId: string;
+    channelName?: string;
+  }): Promise<Channel> {
+    const { data } = await api.post<{ data: Channel }>(
+      '/channels/whatsapp/embedded-signup',
+      payload,
+    );
+    return data.data;
+  },
+
   async update(id: string, payload: UpdateChannelPayload): Promise<Channel> {
     const { data } = await api.patch<{ data: Channel }>(`/channels/${id}`, payload);
     return data.data;
