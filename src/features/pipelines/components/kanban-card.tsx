@@ -46,12 +46,32 @@ export function KanbanCard({ card, onClick }: Props) {
   const assignedTo = card.assignedTo;
   const isClosed = card.status !== 'OPEN';
 
+  // O título do card normalmente já é o nome do contato (cards vindos de
+  // conversa). Só exibe a linha do contato quando ela agrega algo novo —
+  // evita repetir o mesmo nome duas vezes no card.
+  const contactLabel = contact?.name || contact?.phone || '';
+  const showContact = !!contactLabel && contactLabel !== card.title;
+
+  const channel = card.conversation?.channel ?? null;
+  const ChannelIcon = channel
+    ? channelIconByType[channel.type] ?? MessageSquare
+    : null;
+
+  // Só renderiza a segunda linha quando há algo real pra mostrar — sem isso
+  // o card vira um vão vazio com um ícone solto no rodapé.
+  const hasMeta =
+    !!value ||
+    card.status === 'WON' ||
+    card.status === 'LOST' ||
+    showContact ||
+    !!assignedTo;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       onClick={onClick}
-      className={`group relative cursor-pointer rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md dark:bg-zinc-900 ${
+      className={`group relative cursor-pointer rounded-lg border bg-white p-2.5 shadow-sm transition-shadow hover:shadow-md dark:bg-zinc-900 ${
         isClosed
           ? 'border-zinc-200 opacity-70 dark:border-zinc-800'
           : 'border-zinc-200 dark:border-zinc-800'
@@ -62,79 +82,71 @@ export function KanbanCard({ card, onClick }: Props) {
           {...attributes}
           {...listeners}
           onClick={(e) => e.stopPropagation()}
-          className="mt-0.5 cursor-grab text-zinc-300 opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing dark:text-zinc-600"
+          className="-ml-1 mt-0.5 cursor-grab text-zinc-300 opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing dark:text-zinc-600"
           aria-label="Arrastar"
         >
           <GripVertical className="h-3.5 w-3.5" />
         </button>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            {card.title}
-          </p>
-          {card.description && (
-            <p className="mt-0.5 line-clamp-2 text-xs text-zinc-500 dark:text-zinc-400">
-              {card.description}
-            </p>
+
+        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+          {card.title}
+        </p>
+
+        {ChannelIcon && (
+          <span
+            title={`${channel!.name} · clique pra abrir a conversa`}
+            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800"
+          >
+            <ChannelIcon className="h-3 w-3 text-zinc-600 dark:text-zinc-300" />
+          </span>
+        )}
+        {!channel && card.conversationId && (
+          <MessageSquare
+            className="h-3.5 w-3.5 shrink-0 text-blue-500"
+            aria-label="Tem conversa vinculada"
+          />
+        )}
+      </div>
+
+      {card.description && (
+        <p className="mt-1 line-clamp-2 pl-[1.375rem] text-xs text-zinc-500 dark:text-zinc-400">
+          {card.description}
+        </p>
+      )}
+
+      {hasMeta && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-[1.375rem] text-[11px] text-zinc-500">
+          {value && (
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+              {value}
+            </span>
           )}
-        </div>
-      </div>
-
-      <div className="mt-2 flex items-center gap-2 text-[11px] text-zinc-500">
-        {value && (
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-            {value}
-          </span>
-        )}
-        {card.status === 'WON' && (
-          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700 dark:bg-green-900/40 dark:text-green-400">
-            ganho
-          </span>
-        )}
-        {card.status === 'LOST' && (
-          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase text-red-700 dark:bg-red-900/40 dark:text-red-400">
-            perdido
-          </span>
-        )}
-      </div>
-
-      <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-zinc-500">
-        {contact ? (
-          <span className="inline-flex min-w-0 items-center gap-1 truncate">
-            <User className="h-3 w-3 shrink-0" />
-            <span className="truncate">{contact.name || contact.phone}</span>
-          </span>
-        ) : (
-          <span />
-        )}
-        <div className="flex shrink-0 items-center gap-1">
-          {card.conversation?.channel && (() => {
-            const ChannelIcon =
-              channelIconByType[card.conversation.channel.type] ?? MessageSquare;
-            return (
-              <span
-                title={`${card.conversation.channel.name} · clique pra abrir a conversa`}
-                className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800"
-              >
-                <ChannelIcon className="h-3 w-3 text-zinc-600 dark:text-zinc-300" />
-              </span>
-            );
-          })()}
-          {!card.conversation && card.conversationId && (
-            <MessageSquare
-              className="h-3 w-3 text-blue-500"
-              aria-label="Tem conversa vinculada"
-            />
+          {card.status === 'WON' && (
+            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700 dark:bg-green-900/40 dark:text-green-400">
+              ganho
+            </span>
+          )}
+          {card.status === 'LOST' && (
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase text-red-700 dark:bg-red-900/40 dark:text-red-400">
+              perdido
+            </span>
+          )}
+          {showContact && (
+            <span className="inline-flex min-w-0 items-center gap-1 truncate">
+              <User className="h-3 w-3 shrink-0" />
+              <span className="truncate">{contactLabel}</span>
+            </span>
           )}
           {assignedTo && (
             <span
               title={assignedTo.name}
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary"
+              className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary"
             >
               {assignedTo.name.slice(0, 2).toUpperCase()}
             </span>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
