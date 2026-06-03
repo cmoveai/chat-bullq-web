@@ -8,14 +8,14 @@ import type {
   PipelineStage,
 } from '../services/pipelines.service';
 
-const STAGE_COLOR: Record<string, string> = {
-  zinc: 'border-zinc-300 bg-zinc-50 dark:bg-zinc-900',
-  blue: 'border-blue-300 bg-blue-50 dark:bg-blue-950/30',
-  amber: 'border-amber-300 bg-amber-50 dark:bg-amber-950/30',
-  green: 'border-green-300 bg-green-50 dark:bg-green-950/30',
-  red: 'border-red-300 bg-red-50 dark:bg-red-950/30',
-  violet: 'border-violet-300 bg-violet-50 dark:bg-violet-950/30',
-  pink: 'border-pink-300 bg-pink-50 dark:bg-pink-950/30',
+const DOT_COLOR: Record<string, string> = {
+  zinc: 'bg-zinc-400',
+  blue: 'bg-blue-500',
+  amber: 'bg-amber-500',
+  green: 'bg-green-500',
+  red: 'bg-red-500',
+  violet: 'bg-violet-500',
+  pink: 'bg-pink-500',
 };
 
 const PILL_COLOR: Record<string, string> = {
@@ -42,7 +42,7 @@ export function KanbanColumn({ stage, cards, onAddCard, onCardClick }: Props) {
   });
 
   const colorKey = stage.color ?? 'zinc';
-  const headerCls = STAGE_COLOR[colorKey] ?? STAGE_COLOR.zinc;
+  const dotCls = DOT_COLOR[colorKey] ?? DOT_COLOR.zinc;
   const pillCls = PILL_COLOR[colorKey] ?? PILL_COLOR.zinc;
   const totalValue = cards.reduce((acc, c) => {
     const n = typeof c.value === 'string' ? parseFloat(c.value) : c.value ?? 0;
@@ -58,11 +58,10 @@ export function KanbanColumn({ stage, cards, onAddCard, onCardClick }: Props) {
       : null;
 
   return (
-    <div className="flex h-full w-72 shrink-0 flex-col">
-      <div
-        className={`flex items-center justify-between gap-2 rounded-t-lg border-b-2 px-3 py-2 ${headerCls}`}
-      >
+    <div className="flex h-full min-w-[168px] flex-1 flex-col rounded-xl bg-zinc-100 dark:bg-zinc-900/60">
+      <div className="flex items-center justify-between gap-2 px-3 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
+          <span className={`h-2 w-2 shrink-0 rounded-full ${dotCls}`} />
           {stage.type === 'WON' && (
             <Trophy className="h-3.5 w-3.5 shrink-0 text-green-600" />
           )}
@@ -81,7 +80,7 @@ export function KanbanColumn({ stage, cards, onAddCard, onCardClick }: Props) {
         <button
           type="button"
           onClick={onAddCard}
-          className="rounded-md p-1 text-zinc-500 transition-colors hover:bg-white/50 hover:text-zinc-900 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100"
+          className="rounded-md p-1 text-zinc-500 transition-colors hover:bg-white/70 hover:text-zinc-900 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100"
           aria-label="Adicionar conversa"
           title="Adicionar conversa nessa stage"
         >
@@ -91,16 +90,14 @@ export function KanbanColumn({ stage, cards, onAddCard, onCardClick }: Props) {
 
       <div
         ref={setNodeRef}
-        className={`flex-1 space-y-2 overflow-y-auto rounded-b-lg p-2 transition-colors ${
-          isOver
-            ? 'bg-primary/10 ring-2 ring-primary/30'
-            : 'bg-zinc-50/40 dark:bg-zinc-900/40'
+        className={`flex-1 space-y-2 overflow-y-auto rounded-b-xl px-2 pb-2 transition-colors ${
+          isOver ? 'bg-primary/10 ring-2 ring-inset ring-primary/40' : ''
         }`}
       >
         {cards.length === 0 && (
-          <p className="py-6 text-center text-[11px] text-zinc-400">
-            Sem conversas. Click no + pra adicionar.
-          </p>
+          <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-zinc-300 text-[11px] text-zinc-400 dark:border-zinc-700">
+            Sem conversas
+          </div>
         )}
         {cards.map((c) => (
           <KanbanCard key={c.id} card={c} onClick={() => onCardClick(c)} />

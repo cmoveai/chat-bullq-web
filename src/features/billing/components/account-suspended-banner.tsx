@@ -33,7 +33,9 @@ const REASON_COPY: Record<NonNullable<Status['reason']>, string> = {
 };
 
 // Rotas que cliente suspenso PODE acessar (pra ativar plano)
-const ALLOWED_WHEN_SUSPENDED = ['/plans', '/profile', '/onboarding'];
+// + super-admin (independente do status da org · gate é globalRole)
+// + security (política pública)
+const ALLOWED_WHEN_SUSPENDED = ['/plans', '/profile', '/onboarding', '/super-admin', '/security'];
 
 export function AccountSuspendedBanner() {
   const pathname = usePathname();

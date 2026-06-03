@@ -161,7 +161,7 @@ export default function SuportePage() {
               variant: 'primary',
               onClick: () =>
                 toast('Novo ticket', {
-                  description: 'Abertura manual chega quando ZAP plugar canal de suporte interno',
+                  description: 'Abertura manual chega quando EIXXO plugar canal de suporte interno',
                 }),
             },
             {
