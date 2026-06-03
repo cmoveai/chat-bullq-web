@@ -34,7 +34,7 @@ const SECTIONS: Array<{
   {
     group: 'Finanças',
     items: [
-      { label: 'Resultado do ZAP', href: '/super-admin/financeiro', icon: TrendingUp },
+      { label: 'Resultado do EIXXO', href: '/super-admin/financeiro', icon: TrendingUp },
       { label: 'Analytics', href: '/super-admin/analytics', icon: BarChart3 },
     ],
   },
