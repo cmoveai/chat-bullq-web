@@ -19,8 +19,8 @@ declare global {
 
 export interface EmbeddedSignupResult {
   code: string;
-  wabaId: string;
-  phoneNumberId: string;
+  wabaId?: string;
+  phoneNumberId?: string;
 }
 
 const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID;
@@ -119,14 +119,9 @@ export async function launchEmbeddedSignup(): Promise<EmbeddedSignupResult> {
           reject(new Error('Login não autorizado (sem code).'));
           return;
         }
-        if (!sessionInfo.wabaId || !sessionInfo.phoneNumberId) {
-          reject(
-            new Error(
-              'Não recebi o número/WABA do fluxo. Tente conectar novamente.',
-            ),
-          );
-          return;
-        }
+        // wabaId/phoneNumberId vêm do evento WA_EMBEDDED_SIGNUP quando há
+        // onboarding de número. No fluxo de concessão de acesso esse evento não
+        // dispara — seguimos só com o code e o backend descobre via Graph.
         resolve({
           code,
           wabaId: sessionInfo.wabaId,

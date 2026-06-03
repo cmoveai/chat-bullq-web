@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Dev HTTPS: proxia a API na mesma origem pra evitar mixed content
+  // (página https → API http://localhost:3001). Só ativa quando
+  // DEV_API_PROXY_TARGET estiver setado (ambiente local de teste).
+  async rewrites() {
+    const target = process.env.DEV_API_PROXY_TARGET;
+    if (!target) return [];
+    return [{ source: '/api/:path*', destination: `${target}/api/:path*` }];
+  },
 };
 
 // Cyber Onda 2 · #26 · Sentry build hooks

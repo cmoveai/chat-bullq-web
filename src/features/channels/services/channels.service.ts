@@ -89,8 +89,8 @@ export const channelsService = {
    */
   async embeddedSignup(payload: {
     code: string;
-    wabaId: string;
-    phoneNumberId: string;
+    wabaId?: string;
+    phoneNumberId?: string;
     channelName?: string;
   }): Promise<Channel> {
     const { data } = await api.post<{ data: Channel }>(
