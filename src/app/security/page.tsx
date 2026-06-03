@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Segurança · CMOVE.AI-ZAP',
+  title: 'Segurança · EIXXO',
   description:
-    'Política de Divulgação Responsável · canal de reporte · hall of fame · CMOVE.AI-ZAP',
+    'Política de Divulgação Responsável · canal de reporte · hall of fame · EIXXO',
   robots: { index: true, follow: true },
 };
 
@@ -13,7 +13,7 @@ export default function SecurityPage() {
     <main className="mx-auto max-w-3xl px-6 py-16 text-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
       <header className="border-b border-zinc-200 pb-8 dark:border-zinc-800">
         <p className="text-[10px] uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400">
-          Cyber Onda 2 · CMOVE.AI-ZAP
+          Cyber Onda 2 · EIXXO
         </p>
         <h1 className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
           Política de Divulgação Responsável
@@ -35,12 +35,12 @@ export default function SecurityPage() {
         <p>Sistemas no escopo:</p>
         <ul>
           <li>
-            <code>https://zap.cmove.ai</code> · frontend SaaS
+            <code>https://app.eixxohub.com</code> · frontend SaaS
           </li>
           <li>
-            <code>https://zap.cmove.ai/api/v1/*</code> · backend NestJS
+            <code>https://app.eixxohub.com/api/v1/*</code> · backend NestJS
           </li>
-          <li>Mobile apps oficiais CMOVE.AI-ZAP (quando lançarem)</li>
+          <li>Mobile apps oficiais EIXXO (quando lançarem)</li>
         </ul>
         <p>Fora do escopo:</p>
         <ul>
@@ -146,7 +146,7 @@ export default function SecurityPage() {
 
       <footer className="border-t border-zinc-200 pt-6 text-xs text-zinc-500 dark:border-zinc-800">
         <Link href="/" className="hover:underline">
-          ← Voltar pra zap.cmove.ai
+          ← Voltar pra app.eixxohub.com
         </Link>
         <span className="mx-3">·</span>
         <a href="https://cmove.ai/privacidade" className="hover:underline">

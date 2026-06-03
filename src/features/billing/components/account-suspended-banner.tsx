@@ -25,7 +25,7 @@ type Status = {
 const REASON_COPY: Record<NonNullable<Status['reason']>, string> = {
   trial_pending_payment:
     'Pagamento pendente. Escolha um plano (cartão ou Pix) para liberar o acesso.',
-  trial_expired: 'Seu trial de 30 dias terminou. Ative um plano para voltar a usar.',
+  trial_expired: 'Seu trial de 7 dias terminou. Ative um plano para voltar a usar.',
   past_due: 'Pagamento em atraso. Atualize seu cartão para continuar usando.',
   canceled: 'Sua assinatura foi cancelada. Reative para voltar a usar.',
   expired: 'Sua assinatura expirou. Renove para voltar a usar.',

@@ -63,7 +63,7 @@ export function Sidebar() {
         <div className="flex items-center gap-2.5">
           <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
           <span className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400 font-medium">
-            CMOVE.AI-ZAP
+            EIXXO
           </span>
         </div>
         <div style={{ fontFamily: 'var(--font-montserrat)' }} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-1.5 tracking-tight">

@@ -95,6 +95,18 @@ export function ChatSimulator({ nodes, edges, onClose }: ChatSimulatorProps) {
         }
         break;
       }
+      case 'ACTION': {
+        // No simulador não persistимos no contato — só registramos e seguimos.
+        const fields = (data.fields || {}) as Record<string, string>;
+        const filled = Object.keys(fields).filter((k) => fields[k]);
+        if (filled.length) {
+          setMessages((prev) => [...prev, { from: 'bot', text: `(salvou no contato: ${filled.join(', ')})` }]);
+        }
+        const next = outEdges[0]?.target;
+        if (next) setTimeout(() => processNode(next), 200);
+        else setEnded(true);
+        break;
+      }
       case 'TRANSFER': {
         setMessages((prev) => [...prev, { from: 'bot', text: data.message || 'Transferindo para atendente...' }]);
         setEnded(true);

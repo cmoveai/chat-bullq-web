@@ -183,7 +183,7 @@ export default function HomePage() {
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
             <span className="text-xs font-bold uppercase tracking-widest">
-              CMOVE.AI · ZAP
+              EIXXO
             </span>
           </div>
           <h1 className="mt-3 text-3xl font-bold leading-tight">
@@ -330,7 +330,7 @@ export default function HomePage() {
             </p>
           </div>
           <a
-            href="https://wa.me/5511943464000?text=Oi%20Cris%2C%20travei%20no%20onboarding%20da%20CMOVE.AI-ZAP"
+            href="https://wa.me/5511943464000?text=Oi%20Cris%2C%20travei%20no%20onboarding%20da%20EIXXO"
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700"

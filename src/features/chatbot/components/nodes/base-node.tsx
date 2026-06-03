@@ -4,7 +4,7 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 
 interface BaseNodeProps {
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   color: string;
   children?: React.ReactNode;
   selected?: boolean;
@@ -37,7 +37,7 @@ export function BaseNode({
         />
       )}
       <div className={`flex items-center gap-2 rounded-t-[10px] px-3 py-2 ${color}`}>
-        <span className="text-base">{icon}</span>
+        <span className="flex items-center justify-center text-white">{icon}</span>
         <span className="text-xs font-semibold text-white">{label}</span>
       </div>
       {children && (

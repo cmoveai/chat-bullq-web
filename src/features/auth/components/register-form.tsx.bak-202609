@@ -8,11 +8,12 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import {
   Loader2, User, Mail, Lock, Eye, EyeOff, ArrowRight, Building2,
-  Phone,
+  Phone, FileText, Users,
 } from 'lucide-react';
 import {
   registerSchema,
   type RegisterFormData,
+  COMPANY_SIZE_OPTIONS,
 } from '../schemas/register.schema';
 import { authService } from '../services/auth.service';
 import { useAuthStore } from '@/stores/auth-store';
@@ -28,6 +29,17 @@ const formatPhone = (v: string) => {
   if (d.length <= 2) return d;
   if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+};
+
+const formatCpfCnpj = (v: string) => {
+  const d = v.replace(/\D/g, '').slice(0, 14);
+  if (d.length <= 11) {
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
+    if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+    return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+  }
+  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
 };
 
 export function RegisterForm() {
@@ -53,6 +65,8 @@ export function RegisterForm() {
       name: prefilledName,
       email: prefilledEmail,
       phone: prefilledPhone ? formatPhone(prefilledPhone) : '',
+      cpfCnpj: '',
+      companySize: undefined,
       password: '',
       confirmPassword: '',
       acceptedTerms: false,
@@ -82,6 +96,8 @@ export function RegisterForm() {
         email: data.email,
         password: data.password,
         phone: data.phone,
+        cpfCnpj: data.cpfCnpj,
+        companySize: data.companySize,
         planIntent:
           planIntent && cycleIntent
             ? { planId: planIntent, cycle: cycleIntent }
@@ -184,7 +200,7 @@ export function RegisterForm() {
           >
             <div className="flex">
               <span className="inline-flex items-center rounded-l-lg border border-r-0 border-zinc-200 bg-zinc-50 px-3 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-                +55
+                🇧🇷 +55
               </span>
               <input
                 type="tel"
@@ -198,6 +214,49 @@ export function RegisterForm() {
                   })
                 }
               />
+            </div>
+          </Field>
+        )}
+
+        {/* CPF / CNPJ */}
+        {!inviteInfo && (
+          <Field
+            label="CPF ou CNPJ"
+            error={form.formState.errors.cpfCnpj?.message}
+          >
+            <FieldInput
+              icon={<FileText className="h-4 w-4" />}
+              type="text"
+              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+              value={form.watch('cpfCnpj') || ''}
+              onChange={(e) =>
+                form.setValue('cpfCnpj', formatCpfCnpj(e.target.value), {
+                  shouldValidate: true,
+                })
+              }
+            />
+          </Field>
+        )}
+
+        {/* TAMANHO EMPRESA */}
+        {!inviteInfo && (
+          <Field
+            label="Tamanho da empresa"
+            error={form.formState.errors.companySize?.message}
+          >
+            <div className="relative">
+              <Users className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <select
+                className="block w-full appearance-none rounded-lg border border-zinc-200 bg-white py-3 pl-10 pr-3 text-sm text-zinc-950 transition focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white"
+                {...form.register('companySize')}
+              >
+                <option value="">Selecione</option>
+                {COMPANY_SIZE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </Field>
         )}
@@ -258,7 +317,7 @@ export function RegisterForm() {
               className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-emerald-500 focus:ring-emerald-500"
             />
             <span>
-              Ao criar a conta, concordo com os{' '}
+              Eu concordo que li e aceito os{' '}
               <a
                 href="https://cmove.ai/termos"
                 target="_blank"
@@ -266,7 +325,8 @@ export function RegisterForm() {
                 className="font-semibold text-emerald-600 underline hover:text-emerald-700 dark:text-emerald-400"
               >
                 Termos de Uso e Política de Privacidade
-              </a>.
+              </a>{' '}
+              do EIXXO.
             </span>
           </label>
         )}

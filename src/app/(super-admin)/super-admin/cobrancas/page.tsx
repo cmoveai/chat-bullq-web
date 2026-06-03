@@ -205,7 +205,7 @@ export default function CobrancasPage() {
     <>
       <div className="space-y-5">
         <HeroCard
-          eyebrow="Cobranças · CMOVE.AI-ZAP"
+          eyebrow="Cobranças · EIXXO"
           caption="Total a receber neste mês"
           value={formatBrl(totalAReceber)}
           meta={[

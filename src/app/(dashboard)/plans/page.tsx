@@ -150,7 +150,7 @@ export default function PlansPage() {
         {/* Footnote */}
         <div className="mx-auto mt-10 max-w-2xl text-center">
           <p className="text-sm text-zinc-500">
-            Trial de 30 dias · garantia de satisfação · cartão de crédito ou Pix
+            Trial de 7 dias · garantia de satisfação · cartão de crédito ou Pix
             · cancele quando quiser.
           </p>
         </div>

@@ -223,7 +223,7 @@ export default function AssinantesPage() {
     <>
       <div className="space-y-5">
         <HeroCard
-          eyebrow="Assinantes · CMOVE.AI-ZAP"
+          eyebrow="Assinantes · EIXXO"
           caption="Total de organizações pagantes"
           value={String(stats.active)}
           meta={[

@@ -52,7 +52,7 @@ export default function AdminGlobalLoginPage() {
         <div className="relative flex items-center gap-2.5">
           <span className="w-2.5 h-2.5 rounded-full bg-[#1DB954] shadow-[0_0_10px_#1DB954]" />
           <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 font-medium">
-            CMOVE.AI · ZAP
+            EIXXO
           </span>
         </div>
 
@@ -98,7 +98,7 @@ export default function AdminGlobalLoginPage() {
             <div className="inline-flex items-center gap-2 justify-center">
               <span className="w-2 h-2 rounded-full bg-[#1DB954]" />
               <span className="text-[11px] uppercase tracking-[0.2em] text-zinc-400 font-medium">
-                CMOVE.AI · ZAP
+                EIXXO
               </span>
             </div>
             <h1 style={{ fontFamily: 'var(--font-montserrat)' }} className="text-2xl font-semibold text-white mt-2">Admin Global</h1>

@@ -153,7 +153,7 @@ export function LoginForm() {
       </div>
       <a
         href={
-          (process.env.NEXT_PUBLIC_API_URL ?? 'https://zap.cmove.ai/api/v1') +
+          (process.env.NEXT_PUBLIC_API_URL ?? 'https://app.eixxohub.com/api/v1') +
           '/auth/google'
         }
         className="mt-4 inline-flex h-12 w-full items-center justify-center gap-3 rounded-lg border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"

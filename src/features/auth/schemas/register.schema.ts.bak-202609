@@ -24,6 +24,14 @@ export const COMPANY_SIZE_OPTIONS: { value: CompanySize; label: string }[] = [
   { value: '500+', label: 'Acima de 500 colaboradores' },
 ];
 
+// CPF: 11 dígitos · CNPJ: 14 dígitos · aceita só dígitos
+const cpfCnpjSchema = z
+  .string()
+  .transform((v) => v.replace(/\D/g, ''))
+  .refine((v) => v.length === 11 || v.length === 14, {
+    message: 'CPF (11 dígitos) ou CNPJ (14 dígitos)',
+  });
+
 // Telefone BR · 10 ou 11 dígitos (DDD + número)
 const phoneSchema = z
   .string()
@@ -37,6 +45,8 @@ export const registerSchema = z
     name: z.string().min(2, 'Mínimo 2 caracteres').max(120),
     email: z.string().email('Email inválido'),
     phone: phoneSchema,
+    cpfCnpj: cpfCnpjSchema,
+    companySize: companySizeEnum,
     password: z.string().min(6, 'Mínimo 6 caracteres').max(128),
     confirmPassword: z.string(),
     acceptedTerms: z.boolean().refine((v) => v === true, {

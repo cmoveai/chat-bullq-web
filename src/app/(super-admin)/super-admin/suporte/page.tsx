@@ -139,7 +139,7 @@ export default function SuportePage() {
     <>
       <div className="space-y-5">
         <HeroCard
-          eyebrow="Suporte · CMOVE.AI-ZAP"
+          eyebrow="Suporte · EIXXO"
           caption="Tickets abertos agora"
           value={String(counts.open)}
           meta={[

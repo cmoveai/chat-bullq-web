@@ -295,7 +295,7 @@ function HeroMrrCard({
       <div className="relative">
         <div className="flex items-center justify-between mb-2">
           <div className="text-[10px] uppercase tracking-[0.18em] text-zinc-400 font-medium">
-            Conta principal · CMOVE.AI-ZAP
+            Conta principal · EIXXO
           </div>
           <span className="text-[10px] uppercase tracking-[0.14em] text-emerald-400 font-semibold border border-emerald-700/60 rounded px-1.5 py-0.5">
             real

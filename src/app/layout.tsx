@@ -11,7 +11,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: 'CMOVE.AI-ZAP',
+  title: 'EIXXO',
   description: 'CMOVE.AI · Atendimento omnichannel WhatsApp + Instagram com agents IA',
 };
 

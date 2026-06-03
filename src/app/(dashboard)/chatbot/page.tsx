@@ -43,7 +43,11 @@ export default function ChatbotPage() {
     try {
       await chatbotService.update(flow.id, { isActive: !flow.isActive });
       queryClient.invalidateQueries({ queryKey: ['chatbot-flows'] });
-      toast.success(flow.isActive ? 'Fluxo desativado' : 'Fluxo ativado');
+      if (!flow.isActive && (flow.channels?.length ?? 0) === 0) {
+        toast.warning('Fluxo ativado, mas sem canal vinculado · abra o fluxo e vincule um canal pra ele responder');
+      } else {
+        toast.success(flow.isActive ? 'Fluxo desativado' : 'Fluxo ativado');
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro');
     }

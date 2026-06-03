@@ -22,6 +22,8 @@ import { nodeTypes } from './nodes/custom-nodes';
 import { NodeToolbar } from './node-toolbar';
 import { NodePropertiesPanel } from './node-properties-panel';
 import { ChatSimulator } from './chat-simulator';
+import { FlowChannelsButton } from './flow-channels-button';
+import { FlowSettingsButton } from './flow-settings-button';
 import { chatbotService, type ChatbotFlow, type ChatbotNode } from '../services/chatbot.service';
 
 interface FlowEditorProps {
@@ -55,7 +57,7 @@ function flowNodesToReactFlow(nodes: ChatbotNode[]): { nodes: Node[]; edges: Edg
   return { nodes: rfNodes, edges: rfEdges };
 }
 
-function reactFlowToApiNodes(nodes: Node[], edges: Edge[]): Omit<ChatbotNode, 'id' | 'flowId'>[] {
+function reactFlowToApiNodes(nodes: Node[], edges: Edge[]): Omit<ChatbotNode, 'flowId'>[] {
   return nodes.map((n) => {
     const outEdges = edges
       .filter((e) => e.source === n.id)
@@ -65,6 +67,9 @@ function reactFlowToApiNodes(nodes: Node[], edges: Edge[]): Omit<ChatbotNode, 'i
       }));
 
     return {
+      // Mandamos o id do canvas; o backend remapeia pra id novo e reescreve
+      // os targetNodeId das edges — sem isso as conexões quebram no save.
+      id: n.id,
       type: n.type || 'MESSAGE',
       name: null,
       positionX: n.position.x,
@@ -102,6 +107,7 @@ export function FlowEditor({ flow }: FlowEditorProps) {
     if (type === 'MENU') { defaultData.title = ''; defaultData.options = [{ label: 'Opção 1', value: 'opt_1' }]; }
     if (type === 'CONDITION') { defaultData.variable = ''; defaultData.operator = 'equals'; defaultData.value = ''; }
     if (type === 'WAIT') { defaultData.prompt = ''; defaultData.saveAs = 'lastInput'; }
+    if (type === 'ACTION') { defaultData.action = 'SAVE_CONTACT'; defaultData.fields = { name: '{{nome}}' }; }
     if (type === 'TRANSFER') defaultData.message = 'Transferindo para um atendente...';
 
     const newNode: Node = {
@@ -150,6 +156,8 @@ export function FlowEditor({ flow }: FlowEditorProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <FlowSettingsButton flow={flow} />
+          <FlowChannelsButton flow={flow} />
           <button
             onClick={() => setShowSimulator(!showSimulator)}
             className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
