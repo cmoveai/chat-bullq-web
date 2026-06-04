@@ -144,6 +144,12 @@ export const SUBTYPES: Record<BpmnNodeCategory, BpmnSubtype[]> = {
       icon: 'HO',
       description: 'Pausa a IA e cria tarefa de atendimento humano',
     },
+    {
+      code: 'START_FLOW',
+      label: 'Iniciar flow (chatbot)',
+      icon: 'FL',
+      description: 'Inicia um fluxo de conversa do chatbot na conversa',
+    },
   ],
   UTIL: [
     {

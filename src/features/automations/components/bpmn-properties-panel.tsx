@@ -6,6 +6,7 @@ import { X, Trash2, Copy } from 'lucide-react';
 import type { Node } from '@xyflow/react';
 import { SUBTYPES, type BpmnNodeCategory } from './nodes/bpmn-nodes';
 import { pipelinesService } from '@/features/pipelines/services/pipelines.service';
+import { chatbotService } from '@/features/chatbot/services/chatbot.service';
 
 interface BpmnPropertiesPanelProps {
   node: Node;
@@ -41,6 +42,11 @@ export function BpmnPropertiesPanel({
     queryKey: ['pipelines'],
     queryFn: () => pipelinesService.list(),
     enabled: data.subtype === 'MOVE_CARD_STAGE',
+  });
+  const flowsQuery = useQuery({
+    queryKey: ['chatbot-flows'],
+    queryFn: () => chatbotService.list(),
+    enabled: data.subtype === 'START_FLOW',
   });
 
   return (
@@ -357,6 +363,27 @@ export function BpmnPropertiesPanel({
               />
             </div>
           )}
+
+        {category === 'ACTION' && data.subtype === 'START_FLOW' && (
+          <div>
+            <label className={labelCls}>Fluxo do chatbot</label>
+            <select
+              className={inputCls}
+              value={data.flowId ?? ''}
+              onChange={(e) => update('flowId', e.target.value)}
+            >
+              <option value="">Selecione…</option>
+              {(flowsQuery.data ?? []).map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[10px] text-zinc-400">
+              Inicia este fluxo de conversa na conversa do contato.
+            </p>
+          </div>
+        )}
 
         {/* Utils */}
         {category === 'UTIL' && data.subtype === 'DELAY' && (

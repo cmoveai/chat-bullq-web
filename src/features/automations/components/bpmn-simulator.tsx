@@ -164,6 +164,7 @@ function explainNode(node: Node): string {
       if (d.subtype === 'CREATE_TASK') return `Cria tarefa "${d.title ?? ''}"`;
       if (d.subtype === 'SCHEDULE_FOLLOWUP') return `Agenda follow-up em ${d.inHours ?? 24}h`;
       if (d.subtype === 'HANDOFF') return 'Transfere para atendente humano';
+      if (d.subtype === 'START_FLOW') return 'Inicia um fluxo de chatbot na conversa';
       return d.subtype ?? '?';
     case 'UTIL':
       if (d.subtype === 'DELAY') return `Pausa ${d.minutes ?? 5} minutos`;

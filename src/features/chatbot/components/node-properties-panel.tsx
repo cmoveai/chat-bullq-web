@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { X, Trash2 } from 'lucide-react';
 import type { Node } from '@xyflow/react';
+import { pipelinesService } from '@/features/pipelines/services/pipelines.service';
 
 interface NodePropertiesPanelProps {
   node: Node;
@@ -20,6 +22,12 @@ export function NodePropertiesPanel({ node, onUpdate, onDelete, onClose }: NodeP
     (key: string, value: any) => onUpdate(node.id, { ...data, [key]: value }),
     [node.id, data, onUpdate],
   );
+  const action = (data.action as string) || 'SAVE_CONTACT';
+  const pipelinesQuery = useQuery({
+    queryKey: ['pipelines'],
+    queryFn: () => pipelinesService.list(),
+    enabled: node.type === 'ACTION' && action === 'MOVE_CARD_STAGE',
+  });
 
   return (
     <div className="w-72 border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -127,21 +135,112 @@ export function NodePropertiesPanel({ node, onUpdate, onDelete, onClose }: NodeP
 
         {node.type === 'ACTION' && (
           <>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              Salva os dados capturados no cadastro do contato. Use {'{{variavel}}'} pra puxar o que o cliente respondeu (ex: o nome que um nó Aguardar salvou).
-            </p>
-            {([['name', 'Nome'], ['email', 'E-mail'], ['phone', 'Telefone'], ['notes', 'Notas']] as const).map(([field, label]) => (
-              <div key={field}>
-                <label className={labelCls}>{label}</label>
-                <input
-                  className={inputCls}
-                  value={(data.fields?.[field]) || ''}
-                  onChange={(e) => update('fields', { ...(data.fields || {}), [field]: e.target.value })}
-                  placeholder={field === 'name' ? '{{nome}}' : field === 'email' ? '{{email}}' : field === 'phone' ? '{{telefone}}' : ''}
-                />
+            <div>
+              <label className={labelCls}>Ação</label>
+              <select className={inputCls} value={action} onChange={(e) => update('action', e.target.value)}>
+                <option value="SAVE_CONTACT">Salvar contato</option>
+                <option value="ADD_TAG">Adicionar tag</option>
+                <option value="SET_QUALIFICATION">Qualificar lead</option>
+                <option value="SET_LEAD_SCORE">Lead score</option>
+                <option value="MOVE_CARD_STAGE">Mover card de etapa</option>
+                <option value="CREATE_TASK">Criar tarefa</option>
+                <option value="HANDOFF">Transferir p/ humano</option>
+              </select>
+            </div>
+
+            {action === 'SAVE_CONTACT' && (
+              <>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                  Salva os dados capturados no cadastro do contato. Use {'{{variavel}}'} pra puxar o que o cliente respondeu.
+                </p>
+                {([['name', 'Nome'], ['email', 'E-mail'], ['phone', 'Telefone'], ['notes', 'Notas']] as const).map(([field, label]) => (
+                  <div key={field}>
+                    <label className={labelCls}>{label}</label>
+                    <input
+                      className={inputCls}
+                      value={(data.fields?.[field]) || ''}
+                      onChange={(e) => update('fields', { ...(data.fields || {}), [field]: e.target.value })}
+                      placeholder={field === 'name' ? '{{nome}}' : field === 'email' ? '{{email}}' : field === 'phone' ? '{{telefone}}' : ''}
+                    />
+                  </div>
+                ))}
+                <p className="text-[10px] text-zinc-400">Campos em branco não são alterados no contato.</p>
+              </>
+            )}
+
+            {action === 'ADD_TAG' && (
+              <div>
+                <label className={labelCls}>Tag</label>
+                <input className={inputCls} value={data.tag || ''} onChange={(e) => update('tag', e.target.value)} placeholder="lead-quente" />
               </div>
-            ))}
-            <p className="text-[10px] text-zinc-400">Campos em branco não são alterados no contato.</p>
+            )}
+
+            {action === 'SET_QUALIFICATION' && (
+              <>
+                <div>
+                  <label className={labelCls}>Status</label>
+                  <select className={inputCls} value={data.status || 'QUALIFIED'} onChange={(e) => update('status', e.target.value)}>
+                    <option value="NEW">Novo</option>
+                    <option value="QUALIFYING">Em qualificação</option>
+                    <option value="QUALIFIED">Qualificado</option>
+                    <option value="DISQUALIFIED">Desqualificado</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Pontos a somar (opcional)</label>
+                  <input type="number" className={inputCls} value={data.scoreDelta ?? ''} onChange={(e) => update('scoreDelta', e.target.value === '' ? undefined : Number(e.target.value))} />
+                </div>
+              </>
+            )}
+
+            {action === 'SET_LEAD_SCORE' && (
+              <>
+                <div>
+                  <label className={labelCls}>Definir score (absoluto)</label>
+                  <input type="number" className={inputCls} value={data.score ?? ''} onChange={(e) => update('score', e.target.value === '' ? undefined : Number(e.target.value))} />
+                </div>
+                <div>
+                  <label className={labelCls}>Ou ajustar (+/-)</label>
+                  <input type="number" className={inputCls} value={data.delta ?? ''} onChange={(e) => update('delta', e.target.value === '' ? undefined : Number(e.target.value))} />
+                </div>
+              </>
+            )}
+
+            {action === 'MOVE_CARD_STAGE' && (
+              <div>
+                <label className={labelCls}>Etapa de destino</label>
+                <select className={inputCls} value={data.toStageId || ''} onChange={(e) => update('toStageId', e.target.value)}>
+                  <option value="">Selecione…</option>
+                  {(pipelinesQuery.data ?? []).map((p) => (
+                    <optgroup key={p.id} label={p.name}>
+                      {(p.stages ?? []).map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {action === 'CREATE_TASK' && (
+              <>
+                <div>
+                  <label className={labelCls}>Título da tarefa</label>
+                  <input className={inputCls} value={data.title || ''} onChange={(e) => update('title', e.target.value)} placeholder="Ligar para o lead" />
+                </div>
+                <div>
+                  <label className={labelCls}>Prazo em horas (opcional)</label>
+                  <input type="number" className={inputCls} value={data.dueInHours ?? ''} onChange={(e) => update('dueInHours', e.target.value === '' ? undefined : Number(e.target.value))} />
+                </div>
+              </>
+            )}
+
+            {['ADD_TAG', 'SET_QUALIFICATION', 'SET_LEAD_SCORE', 'MOVE_CARD_STAGE', 'CREATE_TASK', 'HANDOFF'].includes(action) && (
+              <div>
+                <label className={labelCls}>Motivo (auditoria)</label>
+                <input className={inputCls} value={data.reason || ''} onChange={(e) => update('reason', e.target.value)} placeholder="Por que esta ação" />
+              </div>
+            )}
           </>
         )}
 
