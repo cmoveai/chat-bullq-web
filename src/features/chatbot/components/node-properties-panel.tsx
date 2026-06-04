@@ -313,6 +313,22 @@ export function NodePropertiesPanel({ node, nodes, onUpdate, onDelete, onClose }
                 <input className={inputCls} value={data.reason || ''} onChange={(e) => update('reason', e.target.value)} placeholder="Por que esta ação" />
               </div>
             )}
+
+            {['MOVE_CARD_STAGE', 'SET_QUALIFICATION', 'SET_LEAD_SCORE', 'CREATE_TASK', 'HANDOFF', 'ASSIGN_AI_AGENT'].includes(action) && (
+              <div>
+                <label className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300">
+                  <input
+                    type="checkbox"
+                    checked={data.allowRepeat === true}
+                    onChange={(e) => update('allowRepeat', e.target.checked)}
+                  />
+                  Permitir reexecutar em loop/JUMP
+                </label>
+                <p className="mt-1 text-[10px] text-zinc-400">
+                  Ação crítica: por padrão NÃO roda de novo se um JUMP voltar pra ela (registrada como skipped). Marque só se a repetição for intencional.
+                </p>
+              </div>
+            )}
           </>
         )}
 
