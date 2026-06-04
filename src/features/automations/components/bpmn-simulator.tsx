@@ -136,6 +136,7 @@ function explainNode(node: Node): string {
     case 'TRIGGER':
       if (d.subtype === 'IG_COMMENT')
         return `Quando alguém comenta${d.postId ? ` no post ${d.postId}` : ''}`;
+      if (d.subtype === 'IG_DM') return 'Quando chega uma DM nova no Instagram';
       if (d.subtype === 'WA_MESSAGE') return 'Quando chega mensagem nova no WhatsApp';
       if (d.subtype === 'SCHEDULE') return `Schedule cron: ${d.cron ?? '(sem cron)'}`;
       if (d.subtype === 'MANUAL') return 'Disparado manualmente do painel';

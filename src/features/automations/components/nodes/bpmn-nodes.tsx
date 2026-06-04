@@ -21,6 +21,12 @@ export const SUBTYPES: Record<BpmnNodeCategory, BpmnSubtype[]> = {
       description: 'Dispara quando alguém comenta um post',
     },
     {
+      code: 'IG_DM',
+      label: 'DM Instagram',
+      icon: 'IG',
+      description: 'Dispara quando chega uma mensagem direta no Instagram',
+    },
+    {
       code: 'WA_MESSAGE',
       label: 'Mensagem WhatsApp',
       icon: 'WA',

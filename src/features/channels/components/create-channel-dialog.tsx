@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { Loader2, X, Copy, Check, Lock } from 'lucide-react';
 import { channelsService, type ChannelType } from '../services/channels.service';
+import { ConnectWhatsAppButton } from './connect-whatsapp-button';
 import { ZappfyIcon, MetaIcon, InstagramIcon } from '@/components/ui/icons';
 import { useFeatures } from '@/features/billing/hooks/use-features';
 import { handleApiError } from '@/features/billing/plan-error-handler';
@@ -305,6 +306,18 @@ export function CreateChannelDialog({ open, onClose, onCreated }: CreateChannelD
           </form>
         ) : selectedType === 'WHATSAPP_OFFICIAL' ? (
           <form onSubmit={waForm.handleSubmit(onSubmitWaOfficial)} className="mt-6 space-y-4">
+            <ConnectWhatsAppButton
+              channelName={waForm.watch('name')}
+              onConnected={() => {
+                onCreated();
+                handleClose();
+              }}
+            />
+            <div className="flex items-center gap-3 py-1">
+              <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-700" />
+              <span className="text-xs text-zinc-400">ou configure manualmente</span>
+              <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-700" />
+            </div>
             <Field label="Nome do canal" placeholder="Ex: WhatsApp Business" error={waForm.formState.errors.name?.message} {...waForm.register('name')} />
             <Field label="Phone Number ID" placeholder="Encontrado no Meta Business Suite" error={waForm.formState.errors.phoneNumberId?.message} {...waForm.register('phoneNumberId')} />
             <Field label="Access Token" type="text" placeholder="System User Token ou Temporary Token" error={waForm.formState.errors.accessToken?.message} {...waForm.register('accessToken')} />

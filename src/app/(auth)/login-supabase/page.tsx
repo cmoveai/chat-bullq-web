@@ -74,7 +74,7 @@ export default function LoginSupabasePage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Entrar na CMOVE.AI</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Login unificado via Supabase Auth (SSO entre LAUNCH e ZAP)
+            Login unificado via Supabase Auth (SSO entre LAUNCH e EIXXO)
           </p>
         </div>
 

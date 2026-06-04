@@ -234,7 +234,7 @@ export default function CobrancasPage() {
               Faturas
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
-              Banco do ZAP · refresh 30s ·{' '}
+              Banco do EIXXO · refresh 30s ·{' '}
               <span className="text-emerald-600 dark:text-emerald-500 font-semibold">ao vivo</span>
             </p>
           </div>
