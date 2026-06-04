@@ -108,6 +108,42 @@ export const SUBTYPES: Record<BpmnNodeCategory, BpmnSubtype[]> = {
       icon: 'AI',
       description: 'Delega resposta pra agente IA',
     },
+    {
+      code: 'MOVE_CARD_STAGE',
+      label: 'Mover card de etapa',
+      icon: 'MV',
+      description: 'Move a oportunidade para outra etapa do funil',
+    },
+    {
+      code: 'SET_QUALIFICATION',
+      label: 'Qualificar lead',
+      icon: 'QL',
+      description: 'Define o status de qualificação do card',
+    },
+    {
+      code: 'SET_LEAD_SCORE',
+      label: 'Lead score',
+      icon: 'LS',
+      description: 'Define ou ajusta a pontuação do lead',
+    },
+    {
+      code: 'CREATE_TASK',
+      label: 'Criar tarefa',
+      icon: 'TK',
+      description: 'Cria uma atividade comercial ligada ao card',
+    },
+    {
+      code: 'SCHEDULE_FOLLOWUP',
+      label: 'Agendar follow-up',
+      icon: 'FU',
+      description: 'Marca próximo retorno e cria a tarefa',
+    },
+    {
+      code: 'HANDOFF',
+      label: 'Transferir p/ humano',
+      icon: 'HO',
+      description: 'Pausa a IA e cria tarefa de atendimento humano',
+    },
   ],
   UTIL: [
     {

@@ -157,6 +157,13 @@ function explainNode(node: Node): string {
       if (d.subtype === 'TRANSFER') return 'Passa pra atendente humano';
       if (d.subtype === 'TAG') return `Adiciona tag "${d.tag ?? ''}"`;
       if (d.subtype === 'RUN_AGENT') return `Delega pro agente ${d.agentId ?? ''}`;
+      if (d.subtype === 'MOVE_CARD_STAGE') return 'Move o card para outra etapa do funil';
+      if (d.subtype === 'SET_QUALIFICATION') return `Qualifica o lead como ${d.status ?? 'QUALIFIED'}`;
+      if (d.subtype === 'SET_LEAD_SCORE')
+        return d.score !== undefined ? `Define lead score = ${d.score}` : `Ajusta lead score em ${d.delta ?? 0}`;
+      if (d.subtype === 'CREATE_TASK') return `Cria tarefa "${d.title ?? ''}"`;
+      if (d.subtype === 'SCHEDULE_FOLLOWUP') return `Agenda follow-up em ${d.inHours ?? 24}h`;
+      if (d.subtype === 'HANDOFF') return 'Transfere para atendente humano';
       return d.subtype ?? '?';
     case 'UTIL':
       if (d.subtype === 'DELAY') return `Pausa ${d.minutes ?? 5} minutos`;
