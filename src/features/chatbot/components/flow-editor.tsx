@@ -211,6 +211,7 @@ export function FlowEditor({ flow }: FlowEditorProps) {
         {selectedNode && (
           <NodePropertiesPanel
             node={selectedNode}
+            nodes={nodes}
             onUpdate={handleUpdateNodeData}
             onDelete={handleDeleteNode}
             onClose={() => setSelectedNode(null)}

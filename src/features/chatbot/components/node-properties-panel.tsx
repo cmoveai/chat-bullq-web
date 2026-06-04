@@ -5,9 +5,11 @@ import { useQuery } from '@tanstack/react-query';
 import { X, Trash2 } from 'lucide-react';
 import type { Node } from '@xyflow/react';
 import { pipelinesService } from '@/features/pipelines/services/pipelines.service';
+import { aiAgentsService } from '@/features/ai-agents/services/ai-agents.service';
 
 interface NodePropertiesPanelProps {
   node: Node;
+  nodes?: Node[];
   onUpdate: (id: string, data: Record<string, any>) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
@@ -16,7 +18,7 @@ interface NodePropertiesPanelProps {
 const inputCls = 'w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-primary';
 const labelCls = 'block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1';
 
-export function NodePropertiesPanel({ node, onUpdate, onDelete, onClose }: NodePropertiesPanelProps) {
+export function NodePropertiesPanel({ node, nodes, onUpdate, onDelete, onClose }: NodePropertiesPanelProps) {
   const data = node.data as Record<string, any>;
   const update = useCallback(
     (key: string, value: any) => onUpdate(node.id, { ...data, [key]: value }),
@@ -28,6 +30,13 @@ export function NodePropertiesPanel({ node, onUpdate, onDelete, onClose }: NodeP
     queryFn: () => pipelinesService.list(),
     enabled: node.type === 'ACTION' && action === 'MOVE_CARD_STAGE',
   });
+  const agentsQuery = useQuery({
+    queryKey: ['ai-agents'],
+    queryFn: () => aiAgentsService.list(),
+    enabled: node.type === 'ACTION' && action === 'ASSIGN_AI_AGENT',
+  });
+  // Alvos possíveis de JUMP: os demais nós do flow (exclui START e o próprio).
+  const jumpTargets = (nodes ?? []).filter((n) => n.id !== node.id && n.type !== 'START');
 
   return (
     <div className="w-72 border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -116,13 +125,31 @@ export function NodePropertiesPanel({ node, onUpdate, onDelete, onClose }: NodeP
         {node.type === 'WAIT' && (
           <>
             <div>
-              <label className={labelCls}>Mensagem de espera</label>
-              <input className={inputCls} value={data.prompt || ''} onChange={(e) => update('prompt', e.target.value)} placeholder="Digite sua resposta..." />
+              <label className={labelCls}>Aguardar tempo (segundos)</label>
+              <input
+                type="number"
+                min={0}
+                className={inputCls}
+                value={data.delaySeconds ?? ''}
+                onChange={(e) => update('delaySeconds', e.target.value === '' ? undefined : Number(e.target.value))}
+                placeholder="0 = espera resposta"
+              />
+              <p className="mt-1 text-[10px] text-zinc-400">
+                Maior que 0 vira pausa temporizada (não espera resposta). A sessão retoma sozinha depois do tempo. Na simulação o tempo é pulado.
+              </p>
             </div>
-            <div>
-              <label className={labelCls}>Salvar resposta em</label>
-              <input className={inputCls} value={data.saveAs || ''} onChange={(e) => update('saveAs', e.target.value)} placeholder="lastInput" />
-            </div>
+            {!data.delaySeconds && (
+              <>
+                <div>
+                  <label className={labelCls}>Mensagem de espera</label>
+                  <input className={inputCls} value={data.prompt || ''} onChange={(e) => update('prompt', e.target.value)} placeholder="Digite sua resposta..." />
+                </div>
+                <div>
+                  <label className={labelCls}>Salvar resposta em</label>
+                  <input className={inputCls} value={data.saveAs || ''} onChange={(e) => update('saveAs', e.target.value)} placeholder="lastInput" />
+                </div>
+              </>
+            )}
           </>
         )}
 
@@ -144,6 +171,9 @@ export function NodePropertiesPanel({ node, onUpdate, onDelete, onClose }: NodeP
                 <option value="SET_LEAD_SCORE">Lead score</option>
                 <option value="MOVE_CARD_STAGE">Mover card de etapa</option>
                 <option value="CREATE_TASK">Criar tarefa</option>
+                <option value="SET_VARIABLE">Definir variável</option>
+                <option value="ASSIGN_AI_AGENT">Atribuir agente IA</option>
+                <option value="JUMP">Pular para nó (goto)</option>
                 <option value="HANDOFF">Transferir p/ humano</option>
               </select>
             </div>
@@ -233,6 +263,48 @@ export function NodePropertiesPanel({ node, onUpdate, onDelete, onClose }: NodeP
                   <input type="number" className={inputCls} value={data.dueInHours ?? ''} onChange={(e) => update('dueInHours', e.target.value === '' ? undefined : Number(e.target.value))} />
                 </div>
               </>
+            )}
+
+            {action === 'SET_VARIABLE' && (
+              <>
+                <div>
+                  <label className={labelCls}>Nome da variável</label>
+                  <input className={inputCls} value={data.name || ''} onChange={(e) => update('name', e.target.value)} placeholder="plano" />
+                </div>
+                <div>
+                  <label className={labelCls}>Valor</label>
+                  <input className={inputCls} value={data.value ?? ''} onChange={(e) => update('value', e.target.value)} placeholder="growth ou {{outraVar}}" />
+                  <p className="mt-1 text-[10px] text-zinc-400">Use {'{{variavel}}'} pra compor a partir de outra. Fica disponível em CONDITION e MESSAGE.</p>
+                </div>
+              </>
+            )}
+
+            {action === 'ASSIGN_AI_AGENT' && (
+              <div>
+                <label className={labelCls}>Agente IA</label>
+                <select className={inputCls} value={data.agentId || ''} onChange={(e) => update('agentId', e.target.value)}>
+                  <option value="">Selecione…</option>
+                  {(agentsQuery.data ?? []).map((ag) => (
+                    <option key={ag.id} value={ag.id}>{ag.name}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[10px] text-zinc-400">Só atribui o agente responsável à conversa/card. Não liga IA no canal nem dispara resposta automática.</p>
+              </div>
+            )}
+
+            {action === 'JUMP' && (
+              <div>
+                <label className={labelCls}>Pular para o nó</label>
+                <select className={inputCls} value={data.targetNodeId || ''} onChange={(e) => update('targetNodeId', e.target.value)}>
+                  <option value="">Selecione…</option>
+                  {jumpTargets.map((n) => (
+                    <option key={n.id} value={n.id}>
+                      {((n.data as any)?.label as string) || `${n.type} · ${n.id.slice(0, 8)}`}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[10px] text-zinc-400">Máximo de 10 saltos por execução — loops são interrompidos automaticamente.</p>
+              </div>
             )}
 
             {['ADD_TAG', 'SET_QUALIFICATION', 'SET_LEAD_SCORE', 'MOVE_CARD_STAGE', 'CREATE_TASK', 'HANDOFF'].includes(action) && (
