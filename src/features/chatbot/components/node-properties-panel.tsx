@@ -173,6 +173,7 @@ export function NodePropertiesPanel({ node, nodes, onUpdate, onDelete, onClose }
                 <option value="CREATE_TASK">Criar tarefa</option>
                 <option value="SET_VARIABLE">Definir variável</option>
                 <option value="ASSIGN_AI_AGENT">Atribuir agente IA</option>
+                <option value="SEND_CAPI_EVENT">Enviar evento de conversão (CAPI)</option>
                 <option value="JUMP">Pular para nó (goto)</option>
                 <option value="HANDOFF">Transferir p/ humano</option>
               </select>
@@ -290,6 +291,26 @@ export function NodePropertiesPanel({ node, nodes, onUpdate, onDelete, onClose }
                 </select>
                 <p className="mt-1 text-[10px] text-zinc-400">Só atribui o agente responsável à conversa/card. Não liga IA no canal nem dispara resposta automática.</p>
               </div>
+            )}
+
+            {action === 'SEND_CAPI_EVENT' && (
+              <>
+                <div>
+                  <label className={labelCls}>Evento de conversão</label>
+                  <select className={inputCls} value={data.eventName || ''} onChange={(e) => update('eventName', e.target.value)}>
+                    <option value="">Selecione…</option>
+                    <option value="Lead">Lead</option>
+                    <option value="Schedule">Schedule (reunião)</option>
+                    <option value="InitiateCheckout">InitiateCheckout (cobrança)</option>
+                    <option value="Purchase">Purchase (venda)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Valor (opcional)</label>
+                  <input type="number" className={inputCls} value={data.value ?? ''} onChange={(e) => update('value', e.target.value === '' ? undefined : Number(e.target.value))} placeholder="1497" />
+                </div>
+                <p className="mt-1 text-[10px] text-zinc-400">Registra o evento gated (não envia ao Meta nesta fase). Moeda padrão BRL.</p>
+              </>
             )}
 
             {action === 'JUMP' && (
