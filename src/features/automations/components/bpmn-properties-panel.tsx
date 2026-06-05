@@ -1,9 +1,12 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { X, Trash2, Copy } from 'lucide-react';
 import type { Node } from '@xyflow/react';
 import { SUBTYPES, type BpmnNodeCategory } from './nodes/bpmn-nodes';
+import { pipelinesService } from '@/features/pipelines/services/pipelines.service';
+import { chatbotService } from '@/features/chatbot/services/chatbot.service';
 
 interface BpmnPropertiesPanelProps {
   node: Node;
@@ -33,6 +36,18 @@ export function BpmnPropertiesPanel({
     (key: string, value: any) => onUpdate(node.id, { ...data, [key]: value }),
     [node.id, data, onUpdate],
   );
+
+  // Etapas do funil — só busca quando o node é MOVE_CARD_STAGE.
+  const pipelinesQuery = useQuery({
+    queryKey: ['pipelines'],
+    queryFn: () => pipelinesService.list(),
+    enabled: data.subtype === 'MOVE_CARD_STAGE',
+  });
+  const flowsQuery = useQuery({
+    queryKey: ['chatbot-flows'],
+    queryFn: () => chatbotService.list(),
+    enabled: data.subtype === 'START_FLOW',
+  });
 
   return (
     <div className="w-80 border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
@@ -199,6 +214,174 @@ export function BpmnPropertiesPanel({
               onChange={(e) => update('agentId', e.target.value)}
               placeholder="ID do AiAgent"
             />
+          </div>
+        )}
+
+        {/* Ações de funil (Fase 2.5) */}
+        {category === 'ACTION' && data.subtype === 'MOVE_CARD_STAGE' && (
+          <div>
+            <label className={labelCls}>Etapa de destino</label>
+            <select
+              className={inputCls}
+              value={data.toStageId ?? ''}
+              onChange={(e) => update('toStageId', e.target.value)}
+            >
+              <option value="">Selecione…</option>
+              {(pipelinesQuery.data ?? []).map((p) => (
+                <optgroup key={p.id} label={p.name}>
+                  {(p.stages ?? []).map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+        )}
+        {category === 'ACTION' && data.subtype === 'SET_QUALIFICATION' && (
+          <>
+            <div>
+              <label className={labelCls}>Status de qualificação</label>
+              <select
+                className={inputCls}
+                value={data.status ?? 'QUALIFIED'}
+                onChange={(e) => update('status', e.target.value)}
+              >
+                <option value="NEW">Novo</option>
+                <option value="QUALIFYING">Em qualificação</option>
+                <option value="QUALIFIED">Qualificado</option>
+                <option value="DISQUALIFIED">Desqualificado</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Pontos a somar (opcional)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={data.scoreDelta ?? ''}
+                onChange={(e) =>
+                  update('scoreDelta', e.target.value === '' ? undefined : Number(e.target.value))
+                }
+                placeholder="ex: 30"
+              />
+            </div>
+          </>
+        )}
+        {category === 'ACTION' && data.subtype === 'SET_LEAD_SCORE' && (
+          <>
+            <div>
+              <label className={labelCls}>Definir score (valor absoluto)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={data.score ?? ''}
+                onChange={(e) =>
+                  update('score', e.target.value === '' ? undefined : Number(e.target.value))
+                }
+                placeholder="ex: 50"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Ou ajustar (+/-)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={data.delta ?? ''}
+                onChange={(e) =>
+                  update('delta', e.target.value === '' ? undefined : Number(e.target.value))
+                }
+                placeholder="ex: 20"
+              />
+            </div>
+          </>
+        )}
+        {category === 'ACTION' && data.subtype === 'CREATE_TASK' && (
+          <>
+            <div>
+              <label className={labelCls}>Título da tarefa</label>
+              <input
+                className={inputCls}
+                value={data.title ?? ''}
+                onChange={(e) => update('title', e.target.value)}
+                placeholder="Ligar para o lead"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Prazo em horas (opcional)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={data.dueInHours ?? ''}
+                onChange={(e) =>
+                  update('dueInHours', e.target.value === '' ? undefined : Number(e.target.value))
+                }
+                placeholder="ex: 24"
+              />
+            </div>
+          </>
+        )}
+        {category === 'ACTION' && data.subtype === 'SCHEDULE_FOLLOWUP' && (
+          <>
+            <div>
+              <label className={labelCls}>Retornar daqui a (horas)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={data.inHours ?? 24}
+                onChange={(e) => update('inHours', Number(e.target.value))}
+                min={1}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Nota (vira título da tarefa)</label>
+              <input
+                className={inputCls}
+                value={data.note ?? ''}
+                onChange={(e) => update('note', e.target.value)}
+                placeholder="Retornar contato"
+              />
+            </div>
+          </>
+        )}
+        {category === 'ACTION' &&
+          [
+            'MOVE_CARD_STAGE',
+            'SET_QUALIFICATION',
+            'SET_LEAD_SCORE',
+            'CREATE_TASK',
+            'SCHEDULE_FOLLOWUP',
+            'HANDOFF',
+          ].includes(data.subtype) && (
+            <div>
+              <label className={labelCls}>Motivo (auditoria)</label>
+              <input
+                className={inputCls}
+                value={data.reason ?? ''}
+                onChange={(e) => update('reason', e.target.value)}
+                placeholder="Por que esta ação"
+              />
+            </div>
+          )}
+
+        {category === 'ACTION' && data.subtype === 'START_FLOW' && (
+          <div>
+            <label className={labelCls}>Fluxo do chatbot</label>
+            <select
+              className={inputCls}
+              value={data.flowId ?? ''}
+              onChange={(e) => update('flowId', e.target.value)}
+            >
+              <option value="">Selecione…</option>
+              {(flowsQuery.data ?? []).map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[10px] text-zinc-400">
+              Inicia este fluxo de conversa na conversa do contato.
+            </p>
           </div>
         )}
 
