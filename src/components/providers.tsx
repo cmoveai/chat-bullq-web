@@ -11,7 +11,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      {/* Direção visual aprovada EIXXO: ambiente sempre CLARO (sidebar escura é
+          tratada no shell). forcedTheme evita o dark do sistema deixar as
+          páginas internas pretas. */}
+      <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light">
         {children}
         <Toaster richColors position="bottom-right" />
       </ThemeProvider>

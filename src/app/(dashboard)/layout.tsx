@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { SidebarLayout } from '@/components/ui/sidebar-layout';
-import { Navbar, NavbarSection, NavbarSpacer } from '@/components/ui/navbar';
-import { AppSidebar } from '@/components/layout/app-sidebar';
+import { TenantSidebar } from '@/components/layout/tenant-sidebar';
 import { useAuthStore } from '@/stores/auth-store';
 import { authService } from '@/features/auth/services/auth.service';
 import { usePermissionsSync } from '@/features/settings/hooks/use-permissions-sync';
@@ -59,20 +57,15 @@ export default function DashboardLayout({
     );
   }
 
+  // Shell ÚNICO do ambiente do usuário (padrão visual aprovado EIXXO):
+  // sidebar escura premium + área principal clara/off-white em TODAS as rotas.
   return (
-    <SidebarLayout
-      sidebar={<AppSidebar />}
-      navbar={
-        <Navbar>
-          <NavbarSpacer />
-          <NavbarSection><></></NavbarSection>
-        </Navbar>
-      }
-    >
-      <div className="flex h-full flex-col">
+    <div className="flex h-screen w-full overflow-hidden bg-[#f7f8fb] text-zinc-900">
+      <TenantSidebar />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <ToolFailureBanner />
-        <div className="flex-1 min-h-0">{children}</div>
+        <div className="min-h-0 flex-1 overflow-auto">{children}</div>
       </div>
-    </SidebarLayout>
+    </div>
   );
 }
