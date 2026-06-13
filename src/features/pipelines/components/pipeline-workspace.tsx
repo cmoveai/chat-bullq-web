@@ -204,8 +204,6 @@ const CSS = `
 .field .hint{font-size:11px;color:#9aa3b2;font-weight:500;margin-top:5px}
 .colorrow{display:flex;gap:8px;flex-wrap:wrap}
 .swatch{width:28px;height:28px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:.1s}.swatch:hover{transform:scale(1.08)}.swatch.on{border-color:#111827;box-shadow:0 0 0 2px #fff inset}
-.check{display:flex;align-items:center;gap:9px;font-size:13px;color:#3a424f;font-weight:700;cursor:pointer}
-.check input{width:17px;height:17px;min-height:0}
 .m-foot{display:flex;gap:10px;padding:15px 23px 21px}
 .m-cancel{flex:1;height:44px;border:1px solid #e1e6ef;border-radius:12px;background:#fff;color:#3a4150;font-weight:800;cursor:pointer;transition:.12s}.m-cancel:hover{background:#f5f7fb}
 .m-save{flex:1;height:44px;border:0;border-radius:12px;color:#fff;font-weight:850;cursor:pointer;background:linear-gradient(120deg,#3d54e8,#7c3cff);box-shadow:0 8px 18px rgba(61,84,232,.24);transition:.14s}.m-save:hover:not(:disabled){filter:brightness(1.06)}
@@ -622,7 +620,6 @@ function NewColumnModal({ stages, saving, onCancel, onSave }: { stages: Pipeline
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [pos, setPos] = useState<string>('end');
-  const [active, setActive] = useState(true);
   return (
     <div className="mscrim" onClick={onCancel}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -633,7 +630,6 @@ function NewColumnModal({ stages, saving, onCancel, onSave }: { stages: Pipeline
             <div className="field"><label>Cor da etapa</label><div className="colorrow">{COLORS.map((c) => <span key={c} className={`swatch ${color === c ? 'on' : ''}`} style={{ background: c }} onClick={() => setColor(c)} />)}</div></div>
             <div className="field"><label>Posição</label><select value={pos} onChange={(e) => setPos(e.target.value)}><option value="end">No final</option>{stages.map((s) => <option key={s.id} value={s.id}>Após “{s.name}”</option>)}</select></div>
           </div>
-          <label className="check"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> Criar como etapa ativa</label>
         </div>
         <div className="m-foot">
           <button className="m-cancel" onClick={onCancel}>Cancelar</button>
