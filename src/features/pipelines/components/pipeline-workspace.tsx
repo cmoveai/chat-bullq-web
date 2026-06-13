@@ -15,7 +15,7 @@ import {
   Plus, Search, Settings2, MoreHorizontal, ChevronDown, X, SlidersHorizontal, ArrowDownUp,
   Calendar, Tag as TagIcon, Paperclip, MessageSquare, User,
   MoveRight, Zap, Trash2, AlertTriangle, MessageCircle, Activity,
-  Layers, Wallet, Trophy, Percent, GitBranch, CreditCard, Check, ArrowRight, Clock, Package,
+  Layers, Wallet, Percent, GitBranch, CreditCard, Check, ArrowRight, Clock, Package,
 } from 'lucide-react';
 import {
   pipelinesService, type Pipeline, type BoardResponse, type CardSummary, type PipelineStage, type StageType,
@@ -74,15 +74,8 @@ const CSS = `
 .pcfg:hover{background:#f5f7fb;border-color:#d4dbe8}
 .hnewcol{height:38px;border:0;border-radius:11px;background:linear-gradient(120deg,#3d54e8,#7c3cff);color:#fff;font-size:12.5px;font-weight:800;padding:0 16px;display:flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;box-shadow:0 8px 16px rgba(61,84,232,.22);transition:.15s}
 .hnewcol:hover{filter:brightness(1.07)}.hnewcol:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
-/* KPIs */
-.pkpis{display:flex;gap:11px;margin:17px 0 3px;flex-wrap:wrap}
-.kpi{display:flex;align-items:center;gap:11px;background:#fbfcfe;border:1px solid #eef1f6;border-radius:13px;padding:10px 16px 10px 11px;min-width:158px;flex:1 1 auto;transition:.14s}
-.kpi:hover{border-color:#e1e6ef;box-shadow:0 4px 12px rgba(15,23,42,.05)}
-.kpi-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:0 0 36px}
-.kpi-v{font-size:16px;font-weight:850;color:#1a2230;line-height:1.05;font-variant-numeric:tabular-nums}
-.kpi-l{font-size:10.5px;color:#8a93a3;font-weight:650;margin-top:3px;letter-spacing:.01em}
 /* toolbar */
-.pfilters{display:flex;align-items:center;gap:9px;margin-top:15px;padding-bottom:15px;flex-wrap:wrap;position:relative}
+.pfilters{display:flex;align-items:center;gap:9px;margin-top:16px;padding-bottom:16px;flex-wrap:wrap;position:relative}
 .psearch{display:flex;align-items:center;gap:8px;height:36px;border:1px solid #e6eaf1;border-radius:10px;padding:0 12px;color:#9aa3b2;font-size:12px;min-width:248px;background:#f8fafc;transition:.12s}
 .psearch:focus-within{border-color:#aab8e8;background:#fff;box-shadow:0 0 0 3px rgba(61,84,232,.1)}
 .psearch input{border:0;outline:0;background:transparent;font-size:12.5px;color:#303746;width:100%}
@@ -332,18 +325,6 @@ export function PipelineWorkspace({ initialPipelineId }: { initialPipelineId?: s
     return Array.from(s);
   }, [cardsByStage]);
 
-  const stats = useMemo(() => {
-    const all = Object.values(cardsByStage).flat();
-    const open = all.filter((c) => c.status !== 'WON' && c.status !== 'LOST');
-    const won = all.filter((c) => c.status === 'WON');
-    const lost = all.filter((c) => c.status === 'LOST');
-    const openValue = open.reduce((s, c) => s + num(c.value), 0);
-    const wonValue = won.reduce((s, c) => s + num(c.value), 0);
-    const decided = won.length + lost.length;
-    const conv = decided ? Math.round((won.length / decided) * 100) : 0;
-    return { openCount: open.length, openValue, wonCount: won.length, wonValue, conv };
-  }, [cardsByStage]);
-
   const activeFilters = (fStatus !== 'all' ? 1 : 0) + (fResp !== 'all' ? 1 : 0) + (fMin ? 1 : 0) + (fMax ? 1 : 0);
 
   function processCards(list: CardSummary[]) {
@@ -469,13 +450,6 @@ export function PipelineWorkspace({ initialPipelineId }: { initialPipelineId?: s
                 <button className="pcfg" onClick={() => toast('Configurar stages — use o menu de cada coluna ou “Nova coluna”')}><Settings2 size={15} /> Configurar stages</button>
                 <button className="hnewcol" onClick={() => setNewColOpen(true)} disabled={stages.length === 0}><Plus size={15} /> Nova coluna</button>
               </div>
-            </div>
-
-            <div className="pkpis">
-              <div className="kpi"><div className="kpi-ic" style={{ background: '#eef2ff', color: '#3d54e8' }}><Layers size={18} /></div><div><div className="kpi-v">{stats.openCount}</div><div className="kpi-l">Negócios em aberto</div></div></div>
-              <div className="kpi"><div className="kpi-ic" style={{ background: '#e7f8ef', color: '#1f9d63' }}><Wallet size={18} /></div><div><div className="kpi-v">{brl(stats.openValue)}</div><div className="kpi-l">Valor no funil</div></div></div>
-              <div className="kpi"><div className="kpi-ic" style={{ background: '#fff3e1', color: '#e0913a' }}><Trophy size={18} /></div><div><div className="kpi-v">{brl(stats.wonValue)}</div><div className="kpi-l">{stats.wonCount} negócio(s) ganho(s)</div></div></div>
-              <div className="kpi"><div className="kpi-ic" style={{ background: '#e6f7fa', color: '#1ba7b8' }}><Percent size={18} /></div><div><div className="kpi-v">{stats.conv}%</div><div className="kpi-l">Taxa de conversão</div></div></div>
             </div>
 
             <div className="pfilters">
