@@ -17,6 +17,7 @@ import {
   XCircle,
   Lock,
   Globe,
+  FlaskConical,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Channel } from '../services/channels.service';
@@ -43,6 +44,8 @@ export function ChannelCard({ channel, onUpdate }: ChannelCardProps) {
   const [editing, setEditing] = useState(false);
   const meta = channelTypeMap[channel.type] || { label: channel.type, icon: MessageSquare, color: 'bg-gray-500' };
   const Icon = meta.icon;
+  const isDemo = channel.config?.demo === true || channel.connectionStatus === 'demo';
+  const needsReview = !isDemo && channel.connectionStatus === 'needs_review';
   const sync = useChannelSync({ channelId: channel.id, channelType: channel.type });
 
   const handleTest = async () => {
@@ -149,26 +152,38 @@ export function ChannelCard({ channel, onUpdate }: ChannelCardProps) {
           <h3 className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             {channel.name}
           </h3>
-          <StatusBadge
-            kind={
-              isSyncFailed
-                ? 'error'
-                : isSyncRunning
-                  ? 'configuring'
-                  : channel.isActive
-                    ? 'live'
-                    : 'paused'
-            }
-            label={
-              isSyncFailed
-                ? 'Erro de sync'
-                : isSyncRunning
-                  ? 'Sincronizando'
-                  : channel.isActive
-                    ? 'Ativo'
-                    : 'Pausado'
-            }
-          />
+          {isDemo ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-medium text-violet-700 ring-1 ring-inset ring-violet-600/20 dark:bg-violet-900/30 dark:text-violet-300">
+              <FlaskConical className="h-3 w-3" />
+              {channel.connectionStatus === 'demo' ? 'Sandbox' : 'Demo'}
+            </span>
+          ) : needsReview ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-900/30 dark:text-amber-300">
+              <AlertCircle className="h-3 w-3" />
+              Precisa revisão
+            </span>
+          ) : (
+            <StatusBadge
+              kind={
+                isSyncFailed
+                  ? 'error'
+                  : isSyncRunning
+                    ? 'configuring'
+                    : channel.isActive
+                      ? 'live'
+                      : 'paused'
+              }
+              label={
+                isSyncFailed
+                  ? 'Erro de sync'
+                  : isSyncRunning
+                    ? 'Sincronizando'
+                    : channel.isActive
+                      ? 'Ativo'
+                      : 'Desconectado'
+              }
+            />
+          )}
           {channel.visibility === 'PRIVATE' && (
             <span
               title="Canal privado — só membros com permissão explícita enxergam, mesmo OWNER/ADMIN"
