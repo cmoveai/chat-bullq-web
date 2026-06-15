@@ -18,6 +18,8 @@ import { ChannelCard } from './channel-card';
 import { CreateChannelDialog } from './create-channel-dialog';
 import { ConnectionsGrid } from './connections-grid';
 import { useOrgId } from '@/hooks/use-org-query-key';
+import { ActivationConnect } from '@/features/onboarding/components/activation-connect';
+import { isRealConnectedChannel } from '@/features/onboarding/components/first-run-channels';
 
 const FEATURES = [
   { icon: Inbox, title: 'Inbox unificado', desc: 'WhatsApp e Instagram no mesmo painel.' },
@@ -46,6 +48,14 @@ export function ChannelsList() {
 
   const realChannels = (channels ?? []).filter((c) => !isDemoChannel(c));
   const demoChannels = (channels ?? []).filter(isDemoChannel);
+
+  // Activation Mode: sem canal real conectado, a área de canais mostra só a
+  // experiência guiada de 1º canal — nada de tela técnica (Novo Canal, recursos,
+  // canais demo, grid completo).
+  const hasRealChannel = (channels ?? []).some(isRealConnectedChannel);
+  if (!isLoading && channels !== undefined && !hasRealChannel) {
+    return <ActivationConnect variant="page" />;
+  }
 
   return (
     <div className="space-y-8">

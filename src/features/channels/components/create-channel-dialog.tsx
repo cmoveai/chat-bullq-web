@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -89,14 +89,27 @@ interface CreateChannelDialogProps {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
+  /** Quando setado, abre já no passo de config do tipo (ex: ativação 1º canal). */
+  initialType?: ChannelType;
 }
 
-export function CreateChannelDialog({ open, onClose, onCreated }: CreateChannelDialogProps) {
-  const [step, setStep] = useState<'type' | 'config'>('type');
-  const [selectedType, setSelectedType] = useState<ChannelType | null>(null);
+export function CreateChannelDialog({ open, onClose, onCreated, initialType }: CreateChannelDialogProps) {
+  const [step, setStep] = useState<'type' | 'config'>(initialType ? 'config' : 'type');
+  const [selectedType, setSelectedType] = useState<ChannelType | null>(initialType ?? null);
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const { features } = useFeatures();
+
+  // Pré-seleciona o tipo quando o dialog abre em modo ativação (WhatsApp/Instagram).
+  useEffect(() => {
+    if (!open) return;
+    if (initialType) {
+      setSelectedType(initialType);
+      setStep('config');
+    } else {
+      setStep('type');
+    }
+  }, [open, initialType]);
 
   function isChannelLocked(value: ChannelType): boolean {
     if (value === 'INSTAGRAM' && !features.instagramChannels) return true;
