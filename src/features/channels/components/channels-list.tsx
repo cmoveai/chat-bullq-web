@@ -12,12 +12,11 @@ import {
   UserCheck,
   MessagesSquare,
   Sparkles,
-  ChevronRight,
 } from 'lucide-react';
 import { channelsService, type Channel } from '../services/channels.service';
 import { ChannelCard } from './channel-card';
 import { CreateChannelDialog } from './create-channel-dialog';
-import { MetaIcon, InstagramIcon } from '@/components/ui/icons';
+import { ConnectionsGrid } from './connections-grid';
 import { useOrgId } from '@/hooks/use-org-query-key';
 
 const FEATURES = [
@@ -27,11 +26,6 @@ const FEATURES = [
   { icon: MessagesSquare, title: 'Respostas automáticas', desc: 'Automação supervisionada, sem perder o controle.' },
   { icon: Bot, title: 'Qualificação com IA', desc: 'A IA qualifica seus leads enquanto você dorme.' },
   { icon: UserCheck, title: 'Follow-up e handoff', desc: 'Retoma leads parados e passa pro humano na hora certa.' },
-];
-
-const INTEGRATIONS = [
-  { icon: MetaIcon, name: 'WhatsApp Oficial', desc: 'Conecte seu número via API oficial da Meta.' },
-  { icon: InstagramIcon, name: 'Instagram', desc: 'Responda DMs e comentários direto do inbox.' },
 ];
 
 function isDemoChannel(ch: Channel) {
@@ -176,42 +170,8 @@ export function ChannelsList() {
         )}
       </section>
 
-      {/* Integrações disponíveis */}
-      <section>
-        <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            Integrações disponíveis
-          </h2>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:underline"
-          >
-            Ver todas as funcionalidades
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {INTEGRATIONS.map((it) => (
-            <button
-              key={it.name}
-              onClick={() => setShowCreate(true)}
-              className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 text-left transition-all hover:border-primary/40 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200/60 bg-zinc-50 dark:border-zinc-700/60 dark:bg-zinc-800">
-                <it.icon className="h-6 w-6" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{it.name}</p>
-                <p className="mt-0.5 truncate text-xs text-zinc-500 dark:text-zinc-400">{it.desc}</p>
-              </div>
-              <span className="inline-flex items-center gap-0.5 text-xs font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                Conectar
-                <ChevronRight className="h-3.5 w-3.5" />
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
+      {/* Minhas conexões — cards com modal educativo antes de qualquer fluxo externo */}
+      <ConnectionsGrid onConnect={() => setShowCreate(true)} />
 
       <CreateChannelDialog
         open={showCreate}
