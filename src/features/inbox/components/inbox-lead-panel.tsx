@@ -71,9 +71,9 @@ export function InboxLeadPanel({ conversation }: { conversation: Conversation | 
   // Estado a partir do que o payload do inbox realmente expõe.
   // contactId é sempre presente, então "tem contato" exige nome ou telefone reais.
   const hasContact = !!(c.contact && (c.contact.name || c.contact.phone));
-  // Oportunidade/card NÃO vem no payload do inbox hoje — checagem defensiva
-  // para o dia em que o backend expuser; sem o dado, este ramo nunca dispara.
-  const opp: any = (c as any).card ?? (c as any).opportunity ?? null;
+  // Card ("oportunidade") ativo vem de crm.activeCard (GET /conversations/:id).
+  // Mantém o fallback defensivo a campos legados, sem inventar dado.
+  const opp: any = c.crm?.activeCard ?? (c as any).card ?? (c as any).opportunity ?? null;
   const hasOpportunity = !!opp;
 
   const fireNotice = () => setNotice('Ação de CRM disponível em breve nesta versão.');

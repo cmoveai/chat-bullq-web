@@ -38,6 +38,22 @@ export interface LastMessage {
   createdAt: string;
 }
 
+export interface ActiveCard {
+  id: string;
+  title: string;
+  status?: string | null;
+  value?: number | string | null;
+  currency?: string | null;
+  stage?: { id: string; name: string } | null;
+  pipeline?: { id: string; name: string } | null;
+  assignedTo?: { id: string; name: string } | null;
+  nextTask?: { id: string; title: string; dueAt?: string | null } | null;
+}
+
+export interface CrmInfo {
+  activeCard?: ActiveCard | null;
+}
+
 export interface Conversation {
   id: string;
   organizationId: string;
@@ -61,6 +77,7 @@ export interface Conversation {
   assignedTo: AgentInfo | null;
   messages: LastMessage[];
   tags?: TagLink[];
+  crm?: CrmInfo;
   _count: { messages: number };
   /** Inbound messages newer than the current user's lastReadAt cursor. */
   unreadCount?: number;
