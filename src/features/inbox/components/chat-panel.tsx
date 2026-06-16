@@ -6,6 +6,7 @@ import { Check, CheckCheck, Clock, AlertCircle, ExternalLink } from 'lucide-reac
 import { inboxService, type Conversation, type Message } from '../services/inbox.service';
 import { ChatInput } from './chat-input';
 import { ConversationHeader } from './conversation-header';
+import { MessageOriginBadge } from './message-origin-badge';
 import { StoryReplyCard } from './story-reply-card';
 import { AudioMessagePlayer } from './audio-message-player';
 import {
@@ -485,6 +486,7 @@ export function ChatPanel({ conversation, onConversationUpdate }: ChatPanelProps
                           {msg.sender?.name || user?.name}
                         </p>
                       )}
+                      <MessageOriginBadge message={msg} align={isOutbound ? 'right' : 'left'} />
                       {msg.metadata?.replyTo?.story && (
                         <StoryReplyCard
                           story={msg.metadata.replyTo.story}
