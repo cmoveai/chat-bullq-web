@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { channelsService, type Channel } from '@/features/channels/services/channels.service';
 import { useOrgId } from '@/hooks/use-org-query-key';
+import { useAuthStore } from '@/stores/auth-store';
 import { ActivationConnect } from './activation-connect';
 
 /** Canal real = integração de verdade, ativa, e NÃO demo/sandbox. */
@@ -14,12 +15,29 @@ export function isRealConnectedChannel(c: Channel) {
   return c.connectionStatus ? c.connectionStatus === 'connected' : true;
 }
 
+// Exceção DEV interna: SÓ a conta eixxo@cmove.ai na org EIXXO Hub. Não é bypass
+// genérico — não libera por role OWNER, nem outra conta CMOVE, nem outro tenant.
+const DEV_BYPASS_EMAIL = 'eixxo@cmove.ai';
+const DEV_BYPASS_ORG_ID = 'cmqfk1s3h0002pd06jhu9wb0p';
+const DEV_BYPASS_ORG_SLUG = 'eixxo-hub-mqfk1s3b';
+
+export function useInternalDevBypass(): boolean {
+  const email = useAuthStore((s) => s.user?.email);
+  const activeOrgId = useAuthStore((s) => s.activeOrgId);
+  const organizations = useAuthStore((s) => s.organizations);
+  if (email !== DEV_BYPASS_EMAIL) return false;
+  if (activeOrgId === DEV_BYPASS_ORG_ID) return true;
+  const activeOrg = organizations.find((o) => o.id === activeOrgId);
+  return activeOrg?.slug === DEV_BYPASS_ORG_SLUG;
+}
+
 /** Activation Gate obrigatório: sem canal real, bloqueia o app inteiro.
  *  Suprimido em /settings/channels — lá a própria área renderiza o Activation
  *  Mode simplificado (ver ChannelsList). */
 export function FirstRunChannelOnboarding() {
   const orgId = useOrgId();
   const pathname = usePathname();
+  const isInternalDevBypass = useInternalDevBypass();
 
   const { data: channels, isLoading } = useQuery({
     queryKey: ['channels', orgId],
@@ -29,7 +47,8 @@ export function FirstRunChannelOnboarding() {
 
   const hasRealChannel = (channels ?? []).some(isRealConnectedChannel);
   const onChannelsArea = pathname?.startsWith('/settings/channels') ?? false;
-  const show = !onChannelsArea && !isLoading && channels !== undefined && !hasRealChannel;
+  const show =
+    !isInternalDevBypass && !onChannelsArea && !isLoading && channels !== undefined && !hasRealChannel;
 
   if (!show) return null;
   return <ActivationConnect variant="overlay" />;
