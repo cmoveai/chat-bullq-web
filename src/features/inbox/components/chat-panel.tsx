@@ -24,6 +24,31 @@ interface ChatPanelProps {
   onConversationUpdate: () => void;
 }
 
+const COMPOSER_BLOCK_MESSAGE: Record<string, string> = {
+  closed: 'Reabra a conversa para responder.',
+  demo_channel: 'Este é um canal demo. Nenhuma mensagem real será enviada.',
+  inactive_channel: 'Conecte o canal para enviar mensagens.',
+  disconnected_channel: 'Conecte o canal para enviar mensagens.',
+  unsupported_channel: 'Este canal ainda não suporta envio pelo Inbox.',
+};
+
+/**
+ * Estado do composer a partir do sendability do canal (vem do detalhe da
+ * conversa). Sem esse dado (ex.: objeto vindo da listagem), cai no antigo
+ * critério de conversa CLOSED. O bloqueio real é garantido no backend.
+ */
+function composerBlock(conversation: Conversation): { disabled: boolean; message?: string } {
+  const ch = conversation.channel;
+  if (ch?.canSend === false) {
+    const reason = ch.sendBlockReason ?? (conversation.status === 'CLOSED' ? 'closed' : null);
+    return { disabled: true, message: reason ? COMPOSER_BLOCK_MESSAGE[reason] : undefined };
+  }
+  if (ch?.canSend === undefined && conversation.status === 'CLOSED') {
+    return { disabled: true, message: COMPOSER_BLOCK_MESSAGE.closed };
+  }
+  return { disabled: false };
+}
+
 const statusIcons: Record<string, React.ElementType> = {
   QUEUED: Clock,
   SENT: Check,
@@ -598,7 +623,8 @@ export function ChatPanel({ conversation, onConversationUpdate }: ChatPanelProps
       <ChatInput
         onSend={handleSend}
         onSendAudio={handleSendAudio}
-        disabled={conversation.status === 'CLOSED'}
+        disabled={composerBlock(conversation).disabled}
+        disabledMessage={composerBlock(conversation).message}
       />
     </div>
   );

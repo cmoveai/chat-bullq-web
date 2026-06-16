@@ -9,9 +9,12 @@ interface ChatInputProps {
   onSend: (text: string) => Promise<void>;
   onSendAudio?: (blob: Blob) => Promise<void>;
   disabled?: boolean;
+  /** Mensagem mostrada quando o composer está bloqueado (canal demo, inativo,
+   *  desconectado, conversa finalizada). Fallback para o aviso de encerrada. */
+  disabledMessage?: string;
 }
 
-export function ChatInput({ onSend, onSendAudio, disabled }: ChatInputProps) {
+export function ChatInput({ onSend, onSendAudio, disabled, disabledMessage }: ChatInputProps) {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isSendingAudio, setIsSendingAudio] = useState(false);
@@ -72,7 +75,7 @@ export function ChatInput({ onSend, onSendAudio, disabled }: ChatInputProps) {
   if (disabled) {
     return (
       <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-3 text-center text-sm text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/50">
-        Conversa encerrada — reabra para enviar mensagens
+        {disabledMessage || 'Conversa encerrada — reabra para enviar mensagens'}
       </div>
     );
   }

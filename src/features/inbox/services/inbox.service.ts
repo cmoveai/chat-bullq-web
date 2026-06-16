@@ -18,10 +18,22 @@ export interface Contact {
   tags?: TagLink[];
 }
 
+export type SendBlockReason =
+  | 'closed'
+  | 'demo_channel'
+  | 'inactive_channel'
+  | 'disconnected_channel'
+  | 'unsupported_channel';
+
 export interface ChannelInfo {
   id: string;
   type: string;
   name: string;
+  isActive?: boolean;
+  connectionStatus?: string | null;
+  /** Derivado no backend (GET /conversations/:id). Ausente em payloads de lista. */
+  canSend?: boolean;
+  sendBlockReason?: SendBlockReason | null;
 }
 
 export interface AgentInfo {
