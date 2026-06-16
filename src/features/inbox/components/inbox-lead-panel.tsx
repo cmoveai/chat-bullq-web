@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   User,
   Phone,
@@ -18,9 +20,11 @@ import {
   Eye,
   Sparkles,
   Info,
+  Loader2,
 } from 'lucide-react';
 import type { Conversation } from '../services/inbox.service';
 import { QUEUE_BY_KEY, computeQueueStatus } from '../lib/conversation-queue';
+import { pipelinesService } from '@/features/pipelines/services/pipelines.service';
 
 function fmtDate(iso: string | null): string {
   if (!iso) return '—';
@@ -52,7 +56,9 @@ const ACTIONS_OPP: CrmAction[] = [
 ];
 
 export function InboxLeadPanel({ conversation }: { conversation: Conversation | null }) {
+  const queryClient = useQueryClient();
   const [notice, setNotice] = useState<string | null>(null);
+  const [creatingOpp, setCreatingOpp] = useState(false);
 
   if (!conversation) {
     return (
@@ -77,6 +83,30 @@ export function InboxLeadPanel({ conversation }: { conversation: Conversation | 
   const hasOpportunity = !!opp;
 
   const fireNotice = () => setNotice('Ação de CRM disponível em breve nesta versão.');
+
+  // Cria a oportunidade no pipeline default a partir da conversa. O backend
+  // deriva o contactId da própria conversa (só enviamos conversationId) e a
+  // valida na org. Depois invalidamos o detalhe pra o painel virar Estado 3.
+  async function handleCreateOpportunity() {
+    if (creatingOpp) return;
+    setCreatingOpp(true);
+    setNotice(null);
+    try {
+      const pipelines = await pipelinesService.list();
+      if (!pipelines.length) {
+        toast.error('Nenhum pipeline disponível para criar oportunidade.');
+        return;
+      }
+      const target = pipelines.find((p) => p.isDefault) ?? pipelines[0];
+      await pipelinesService.createCard(target.id, { conversationId: c.id });
+      await queryClient.invalidateQueries({ queryKey: ['conversation', c.id] });
+      toast.success('Oportunidade criada no pipeline');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Erro ao criar oportunidade');
+    } finally {
+      setCreatingOpp(false);
+    }
+  }
 
   return (
     <aside className="hidden w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l border-zinc-200/80 bg-white p-4 scrollbar-thin dark:border-zinc-800 dark:bg-zinc-950 xl:flex">
@@ -152,7 +182,13 @@ export function InboxLeadPanel({ conversation }: { conversation: Conversation | 
           <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
             Este contato já está vinculado à conversa, mas ainda não possui oportunidade ativa no CRM.
           </p>
-          <CrmActions actions={ACTIONS_CONTACT} onAction={fireNotice} />
+          <CrmActions
+            actions={ACTIONS_CONTACT}
+            busyKey={creatingOpp ? 'criar_oportunidade' : undefined}
+            onAction={(key) =>
+              key === 'criar_oportunidade' ? handleCreateOpportunity() : fireNotice()
+            }
+          />
           {notice && <NoticeLine text={notice} />}
         </section>
       ) : (
@@ -184,19 +220,31 @@ export function InboxLeadPanel({ conversation }: { conversation: Conversation | 
   );
 }
 
-function CrmActions({ actions, onAction }: { actions: CrmAction[]; onAction: () => void }) {
+function CrmActions({
+  actions,
+  onAction,
+  busyKey,
+}: {
+  actions: CrmAction[];
+  onAction: (key: string) => void;
+  busyKey?: string;
+}) {
   return (
     <div className="mt-3 grid grid-cols-2 gap-2">
-      {actions.map((a) => (
-        <button
-          key={a.key}
-          onClick={onAction}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-zinc-700 transition-colors hover:border-primary/40 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-        >
-          <a.icon className="h-3.5 w-3.5" />
-          {a.label}
-        </button>
-      ))}
+      {actions.map((a) => {
+        const busy = busyKey === a.key;
+        return (
+          <button
+            key={a.key}
+            onClick={() => onAction(a.key)}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-zinc-700 transition-colors hover:border-primary/40 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <a.icon className="h-3.5 w-3.5" />}
+            {a.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
