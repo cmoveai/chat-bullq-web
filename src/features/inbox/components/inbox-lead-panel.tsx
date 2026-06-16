@@ -39,7 +39,7 @@ export function InboxLeadPanel({ conversation }: { conversation: Conversation | 
 
   if (!conversation) {
     return (
-      <aside className="hidden w-80 shrink-0 flex-col border-l border-zinc-200/80 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950 lg:flex">
+      <aside className="hidden w-80 shrink-0 flex-col border-l border-zinc-200/80 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950 xl:flex">
         <div className="m-auto text-center text-sm text-zinc-400 dark:text-zinc-500">
           Selecione uma conversa para ver o lead.
         </div>
@@ -52,7 +52,7 @@ export function InboxLeadPanel({ conversation }: { conversation: Conversation | 
   const tags = c.contact?.tags ?? c.tags ?? [];
 
   return (
-    <aside className="hidden w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l border-zinc-200/80 bg-white p-4 scrollbar-thin dark:border-zinc-800 dark:bg-zinc-950 lg:flex">
+    <aside className="hidden w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l border-zinc-200/80 bg-white p-4 scrollbar-thin dark:border-zinc-800 dark:bg-zinc-950 xl:flex">
       {/* Contato / lead */}
       <section>
         <div className="flex items-center gap-3">
