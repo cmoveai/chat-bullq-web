@@ -8,6 +8,7 @@ import { authService } from '@/features/auth/services/auth.service';
 import { usePermissionsSync } from '@/features/settings/hooks/use-permissions-sync';
 import { ToolFailureBanner } from '@/features/ai-agents/components/tool-failure-banner';
 import { AccountSuspendedBanner } from '@/features/billing/components/account-suspended-banner';
+import { FirstRunChannelOnboarding } from '@/features/onboarding/components/first-run-channels';
 
 export default function DashboardLayout({
   children,
@@ -68,6 +69,7 @@ export default function DashboardLayout({
         <ToolFailureBanner />
         <div className="min-h-0 flex-1 overflow-auto">{children}</div>
       </div>
+      <FirstRunChannelOnboarding />
     </div>
   );
 }

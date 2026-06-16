@@ -19,6 +19,8 @@ export interface Channel {
    * PRIVATE = só membros com grant explícito enxergam, mesmo OWNER/ADMIN.
    */
   visibility: ChannelVisibility;
+  /** connected | demo | needs_review | disconnected (informativo, vindo da API). */
+  connectionStatus?: string;
   createdAt: string;
   updatedAt: string;
 }
