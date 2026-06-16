@@ -23,7 +23,17 @@ export type SendBlockReason =
   | 'demo_channel'
   | 'inactive_channel'
   | 'disconnected_channel'
-  | 'unsupported_channel';
+  | 'unsupported_channel'
+  | 'outside_whatsapp_window'
+  | 'no_inbound_message';
+
+export interface MessagingPolicy {
+  requiresTemplate: boolean;
+  lastInboundAt?: string | null;
+  replyWindowEndsAt?: string | null;
+  minutesUntilWindowCloses?: number | null;
+  reason?: 'outside_whatsapp_window' | 'no_inbound_message' | null;
+}
 
 export interface ChannelInfo {
   id: string;
@@ -90,6 +100,7 @@ export interface Conversation {
   messages: LastMessage[];
   tags?: TagLink[];
   crm?: CrmInfo;
+  messagingPolicy?: MessagingPolicy | null;
   _count: { messages: number };
   /** Inbound messages newer than the current user's lastReadAt cursor. */
   unreadCount?: number;

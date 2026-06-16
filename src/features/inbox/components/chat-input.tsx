@@ -12,9 +12,18 @@ interface ChatInputProps {
   /** Mensagem mostrada quando o composer está bloqueado (canal demo, inativo,
    *  desconectado, conversa finalizada). Fallback para o aviso de encerrada. */
   disabledMessage?: string;
+  /** Quando o bloqueio exige template (janela 24h), mostra a CTA "Enviar
+   *  template" — desabilitada nesta etapa (C2.1); envio real fica para C2.2. */
+  showTemplateCta?: boolean;
 }
 
-export function ChatInput({ onSend, onSendAudio, disabled, disabledMessage }: ChatInputProps) {
+export function ChatInput({
+  onSend,
+  onSendAudio,
+  disabled,
+  disabledMessage,
+  showTemplateCta,
+}: ChatInputProps) {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isSendingAudio, setIsSendingAudio] = useState(false);
@@ -75,7 +84,17 @@ export function ChatInput({ onSend, onSendAudio, disabled, disabledMessage }: Ch
   if (disabled) {
     return (
       <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-3 text-center text-sm text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/50">
-        {disabledMessage || 'Conversa encerrada — reabra para enviar mensagens'}
+        <p>{disabledMessage || 'Conversa encerrada — reabra para enviar mensagens'}</p>
+        {showTemplateCta && (
+          <button
+            type="button"
+            disabled
+            title="Disponível em breve"
+            className="mx-auto mt-2 inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900"
+          >
+            Enviar template
+          </button>
+        )}
       </div>
     );
   }

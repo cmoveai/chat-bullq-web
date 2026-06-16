@@ -30,18 +30,31 @@ const COMPOSER_BLOCK_MESSAGE: Record<string, string> = {
   inactive_channel: 'Conecte o canal para enviar mensagens.',
   disconnected_channel: 'Conecte o canal para enviar mensagens.',
   unsupported_channel: 'Este canal ainda não suporta envio pelo Inbox.',
+  outside_whatsapp_window:
+    'A janela de resposta do WhatsApp expirou. Envie um template aprovado pela Meta para retomar a conversa.',
+  no_inbound_message:
+    'Para iniciar esta conversa, será necessário enviar um template aprovado pela Meta.',
 };
+
+// Motivos de bloqueio que exigem template (C2.1) — habilitam a CTA placeholder.
+const TEMPLATE_REASONS = new Set(['outside_whatsapp_window', 'no_inbound_message']);
 
 /**
  * Estado do composer a partir do sendability do canal (vem do detalhe da
  * conversa). Sem esse dado (ex.: objeto vindo da listagem), cai no antigo
  * critério de conversa CLOSED. O bloqueio real é garantido no backend.
  */
-function composerBlock(conversation: Conversation): { disabled: boolean; message?: string } {
+function composerBlock(
+  conversation: Conversation,
+): { disabled: boolean; message?: string; templateCta?: boolean } {
   const ch = conversation.channel;
   if (ch?.canSend === false) {
     const reason = ch.sendBlockReason ?? (conversation.status === 'CLOSED' ? 'closed' : null);
-    return { disabled: true, message: reason ? COMPOSER_BLOCK_MESSAGE[reason] : undefined };
+    return {
+      disabled: true,
+      message: reason ? COMPOSER_BLOCK_MESSAGE[reason] : undefined,
+      templateCta: reason ? TEMPLATE_REASONS.has(reason) : false,
+    };
   }
   if (ch?.canSend === undefined && conversation.status === 'CLOSED') {
     return { disabled: true, message: COMPOSER_BLOCK_MESSAGE.closed };
@@ -625,6 +638,7 @@ export function ChatPanel({ conversation, onConversationUpdate }: ChatPanelProps
         onSendAudio={handleSendAudio}
         disabled={composerBlock(conversation).disabled}
         disabledMessage={composerBlock(conversation).message}
+        showTemplateCta={composerBlock(conversation).templateCta}
       />
     </div>
   );
