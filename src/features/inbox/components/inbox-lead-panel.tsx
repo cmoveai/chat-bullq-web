@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -56,6 +57,7 @@ const ACTIONS_OPP: CrmAction[] = [
 ];
 
 export function InboxLeadPanel({ conversation }: { conversation: Conversation | null }) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [notice, setNotice] = useState<string | null>(null);
   const [creatingOpp, setCreatingOpp] = useState(false);
@@ -106,6 +108,16 @@ export function InboxLeadPanel({ conversation }: { conversation: Conversation | 
     } finally {
       setCreatingOpp(false);
     }
+  }
+
+  // Navega pro board do pipeline da oportunidade (sem deep-link de card).
+  function handleViewPipeline() {
+    const pipelineId = opp?.pipeline?.id;
+    if (!pipelineId) {
+      setNotice('Pipeline não disponível para esta oportunidade.');
+      return;
+    }
+    router.push(`/pipelines/${pipelineId}`);
   }
 
   return (
@@ -169,7 +181,12 @@ export function InboxLeadPanel({ conversation }: { conversation: Conversation | 
             )}
             {opp.nextTask?.title && <Row icon={CheckSquare} label="Próxima tarefa" value={opp.nextTask.title} />}
           </dl>
-          <CrmActions actions={ACTIONS_OPP} onAction={fireNotice} />
+          <CrmActions
+            actions={ACTIONS_OPP}
+            onAction={(key) =>
+              key === 'ver_pipeline' ? handleViewPipeline() : fireNotice()
+            }
+          />
           {notice && <NoticeLine text={notice} />}
         </section>
       ) : hasContact ? (
