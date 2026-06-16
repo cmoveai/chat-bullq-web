@@ -17,6 +17,13 @@ type NavEntry = NavItem | NavGroup;
 const NAV: NavEntry[] = [
   { label: 'Painel', href: '/dashboard', ico: '⌂' },
   {
+    group: 'Atendimentos',
+    items: [
+      { label: 'Inbox', href: '/inbox', ico: '✉' },
+      { label: 'Histórico', href: '/inbox/all', ico: '◉' },
+    ],
+  },
+  {
     group: 'CRM',
     items: [
       { label: 'Contatos', href: '/contacts', ico: '⌘' },
@@ -26,15 +33,13 @@ const NAV: NavEntry[] = [
     ],
   },
   {
-    group: 'Atendimentos',
+    group: 'IA e Automação',
     items: [
-      { label: 'Chat', href: '/chatbot', ico: '✦' },
-      { label: 'Todas as Conversas', href: '/inbox/all', ico: '◉' },
-      { label: 'Inbox', href: '/inbox', ico: '✉' },
+      { label: 'Agentes', href: '/ai-agents', ico: '✧' },
+      { label: 'Automações', href: '/automations', ico: '⚙' },
+      { label: 'Fluxos', href: '/chatbot', ico: '✦' },
     ],
   },
-  { label: 'Agentes', href: '/ai-agents', ico: '✧' },
-  { label: 'Automações', href: '/automations', ico: '⚙' },
   { label: 'Minha Equipe', href: '/settings/members', ico: '☷' },
   { label: 'Planos', href: '/plans', ico: '◫' },
   { label: 'Perfil', href: '/profile', ico: '☺' },
