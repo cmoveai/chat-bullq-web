@@ -13,8 +13,10 @@ interface ChatInputProps {
    *  desconectado, conversa finalizada). Fallback para o aviso de encerrada. */
   disabledMessage?: string;
   /** Quando o bloqueio exige template (janela 24h), mostra a CTA "Enviar
-   *  template" — desabilitada nesta etapa (C2.1); envio real fica para C2.2. */
+   *  template". Habilitada quando há callback para abrir o modal (C2.3c). */
   showTemplateCta?: boolean;
+  /** Abre o modal de envio de template. Sem ele, a CTA fica só visual. */
+  onOpenTemplateModal?: () => void;
 }
 
 export function ChatInput({
@@ -23,6 +25,7 @@ export function ChatInput({
   disabled,
   disabledMessage,
   showTemplateCta,
+  onOpenTemplateModal,
 }: ChatInputProps) {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -88,9 +91,9 @@ export function ChatInput({
         {showTemplateCta && (
           <button
             type="button"
-            disabled
-            title="Disponível em breve"
-            className="mx-auto mt-2 inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900"
+            onClick={onOpenTemplateModal}
+            disabled={!onOpenTemplateModal}
+            className="mx-auto mt-2 inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:border-primary/40 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             Enviar template
           </button>

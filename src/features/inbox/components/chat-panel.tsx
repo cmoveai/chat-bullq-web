@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, CheckCheck, Clock, AlertCircle, ExternalLink } from 'lucide-react';
 import { inboxService, type Conversation, type Message } from '../services/inbox.service';
 import { ChatInput } from './chat-input';
+import { TemplateSendModal } from './template-send-modal';
 import { ConversationHeader } from './conversation-header';
 import { MessageOriginBadge } from './message-origin-badge';
 import { StoryReplyCard } from './story-reply-card';
@@ -325,6 +326,7 @@ function ContactAvatar({
 
 export function ChatPanel({ conversation, onConversationUpdate }: ChatPanelProps) {
   const queryClient = useQueryClient();
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { on, emit, onReconnect } = useSocket();
   const user = useAuthStore((s) => s.user);
@@ -639,6 +641,16 @@ export function ChatPanel({ conversation, onConversationUpdate }: ChatPanelProps
         disabled={composerBlock(conversation).disabled}
         disabledMessage={composerBlock(conversation).message}
         showTemplateCta={composerBlock(conversation).templateCta}
+        onOpenTemplateModal={() => setTemplateModalOpen(true)}
+      />
+
+      <TemplateSendModal
+        open={templateModalOpen}
+        onClose={() => setTemplateModalOpen(false)}
+        channelId={conversation.channelId}
+        channelName={conversation.channel?.name}
+        conversationId={conversation.id}
+        onSent={onConversationUpdate}
       />
     </div>
   );

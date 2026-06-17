@@ -35,6 +35,25 @@ export interface MessagingPolicy {
   reason?: 'outside_whatsapp_window' | 'no_inbound_message' | null;
 }
 
+export interface TemplateParameter {
+  index: number;
+  key: string;
+  type: 'text';
+  required: boolean;
+}
+
+export interface WhatsappTemplate {
+  id: string;
+  name: string;
+  language: string;
+  category?: string | null;
+  status: string;
+  components: any[];
+  parameterSchema?: TemplateParameter[] | null;
+  qualityScore?: string | null;
+  syncedAt?: string | null;
+}
+
 export interface ChannelInfo {
   id: string;
   type: string;
@@ -372,5 +391,16 @@ export const inboxService = {
         fileSize: upload.size,
       },
     });
+  },
+
+  /** Templates aprovados e ativos de um canal (cache da Meta, C2.3). */
+  async listChannelTemplates(
+    channelId: string,
+    status: string = 'APPROVED',
+  ): Promise<WhatsappTemplate[]> {
+    const { data } = await api.get(`/channels/${channelId}/templates`, {
+      params: { status },
+    });
+    return data.data ?? data;
   },
 };
