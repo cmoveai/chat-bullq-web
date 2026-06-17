@@ -18,10 +18,51 @@ export interface Contact {
   tags?: TagLink[];
 }
 
+export type SendBlockReason =
+  | 'closed'
+  | 'demo_channel'
+  | 'inactive_channel'
+  | 'disconnected_channel'
+  | 'unsupported_channel'
+  | 'outside_whatsapp_window'
+  | 'no_inbound_message';
+
+export interface MessagingPolicy {
+  requiresTemplate: boolean;
+  lastInboundAt?: string | null;
+  replyWindowEndsAt?: string | null;
+  minutesUntilWindowCloses?: number | null;
+  reason?: 'outside_whatsapp_window' | 'no_inbound_message' | null;
+}
+
+export interface TemplateParameter {
+  index: number;
+  key: string;
+  type: 'text';
+  required: boolean;
+}
+
+export interface WhatsappTemplate {
+  id: string;
+  name: string;
+  language: string;
+  category?: string | null;
+  status: string;
+  components: any[];
+  parameterSchema?: TemplateParameter[] | null;
+  qualityScore?: string | null;
+  syncedAt?: string | null;
+}
+
 export interface ChannelInfo {
   id: string;
   type: string;
   name: string;
+  isActive?: boolean;
+  connectionStatus?: string | null;
+  /** Derivado no backend (GET /conversations/:id). Ausente em payloads de lista. */
+  canSend?: boolean;
+  sendBlockReason?: SendBlockReason | null;
 }
 
 export interface AgentInfo {
@@ -36,6 +77,22 @@ export interface LastMessage {
   content: Record<string, any>;
   direction: 'INBOUND' | 'OUTBOUND';
   createdAt: string;
+}
+
+export interface ActiveCard {
+  id: string;
+  title: string;
+  status?: string | null;
+  value?: number | string | null;
+  currency?: string | null;
+  stage?: { id: string; name: string } | null;
+  pipeline?: { id: string; name: string } | null;
+  assignedTo?: { id: string; name: string } | null;
+  nextTask?: { id: string; title: string; dueAt?: string | null } | null;
+}
+
+export interface CrmInfo {
+  activeCard?: ActiveCard | null;
 }
 
 export interface Conversation {
@@ -61,6 +118,8 @@ export interface Conversation {
   assignedTo: AgentInfo | null;
   messages: LastMessage[];
   tags?: TagLink[];
+  crm?: CrmInfo;
+  messagingPolicy?: MessagingPolicy | null;
   _count: { messages: number };
   /** Inbound messages newer than the current user's lastReadAt cursor. */
   unreadCount?: number;
@@ -332,5 +391,16 @@ export const inboxService = {
         fileSize: upload.size,
       },
     });
+  },
+
+  /** Templates aprovados e ativos de um canal (cache da Meta, C2.3). */
+  async listChannelTemplates(
+    channelId: string,
+    status: string = 'APPROVED',
+  ): Promise<WhatsappTemplate[]> {
+    const { data } = await api.get(`/channels/${channelId}/templates`, {
+      params: { status },
+    });
+    return data.data ?? data;
   },
 };

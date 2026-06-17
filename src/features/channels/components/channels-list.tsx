@@ -19,7 +19,7 @@ import { CreateChannelDialog } from './create-channel-dialog';
 import { ConnectionsGrid } from './connections-grid';
 import { useOrgId } from '@/hooks/use-org-query-key';
 import { ActivationConnect } from '@/features/onboarding/components/activation-connect';
-import { isRealConnectedChannel } from '@/features/onboarding/components/first-run-channels';
+import { isRealConnectedChannel, useInternalDevBypass } from '@/features/onboarding/components/first-run-channels';
 
 const FEATURES = [
   { icon: Inbox, title: 'Inbox unificado', desc: 'WhatsApp e Instagram no mesmo painel.' },
@@ -38,6 +38,7 @@ export function ChannelsList() {
   const [showCreate, setShowCreate] = useState(false);
   const queryClient = useQueryClient();
   const orgId = useOrgId();
+  const isInternalDevBypass = useInternalDevBypass();
 
   const { data: channels, isLoading } = useQuery({
     queryKey: ['channels', orgId],
@@ -51,9 +52,10 @@ export function ChannelsList() {
 
   // Activation Mode: sem canal real conectado, a área de canais mostra só a
   // experiência guiada de 1º canal — nada de tela técnica (Novo Canal, recursos,
-  // canais demo, grid completo).
+  // canais demo, grid completo). Exceção: conta DEV interna (eixxo@cmove.ai +
+  // EIXXO Hub) vê a tela completa mesmo sem canal real.
   const hasRealChannel = (channels ?? []).some(isRealConnectedChannel);
-  if (!isLoading && channels !== undefined && !hasRealChannel) {
+  if (!isLoading && channels !== undefined && !hasRealChannel && !isInternalDevBypass) {
     return <ActivationConnect variant="page" />;
   }
 

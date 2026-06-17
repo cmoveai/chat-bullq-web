@@ -29,6 +29,8 @@ import {
   PopoverPanel,
 } from '@headlessui/react';
 import { inboxService, type Conversation } from '../services/inbox.service';
+import { InboxStatusBar } from './inbox-status-bar';
+import { computeQueueStatus, QUEUE_BY_KEY, type QueueStatus } from '../lib/conversation-queue';
 import {
   inboxViewsService,
   type InboxView,
@@ -293,9 +295,17 @@ export function ConversationList({ activeId, onSelect, viewId }: ConversationLis
     staleTime: 15000,
   });
 
+  const [queue, setQueue] = useState<QueueStatus | null>(null);
+
   const conversations = useMemo(
     () => data?.pages.flatMap((p) => p.conversations) || [],
     [data],
+  );
+
+  // Filtro por fila (7 status), computado no frontend sobre as conversas carregadas.
+  const visible = useMemo(
+    () => (queue ? conversations.filter((c) => computeQueueStatus(c) === queue) : conversations),
+    [conversations, queue],
   );
 
   // Infinite scroll via IntersectionObserver
@@ -921,6 +931,11 @@ export function ConversationList({ activeId, onSelect, viewId }: ConversationLis
         </div>
       )}
 
+      {/* Barra das 7 filas de atendimento */}
+      {selectedIds.size === 0 && (
+        <InboxStatusBar conversations={conversations} active={queue} onSelect={setQueue} />
+      )}
+
       {/* Divider */}
       {selectedIds.size === 0 && (
         <div className="mx-3 border-t border-zinc-100 dark:border-zinc-800/60" />
@@ -938,17 +953,17 @@ export function ConversationList({ activeId, onSelect, viewId }: ConversationLis
               </div>
             </div>
           ))
-        ) : conversations.length === 0 ? (
+        ) : visible.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
               <MessageSquare className="h-6 w-6 text-zinc-300 dark:text-zinc-600" />
             </div>
             <p className="mt-3 text-[13px] font-medium text-zinc-400 dark:text-zinc-500">
-              Nenhuma conversa encontrada
+              {queue ? `Nenhuma conversa em "${QUEUE_BY_KEY[queue].label}"` : 'Nenhuma conversa encontrada'}
             </p>
-            {(activeFilterCount > 0 || search) && (
+            {(activeFilterCount > 0 || search || queue) && (
               <button
-                onClick={() => { clearListFilters(); handleSearchChange(''); }}
+                onClick={() => { clearListFilters(); handleSearchChange(''); setQueue(null); }}
                 className="mt-2 text-xs text-primary hover:underline"
               >
                 Limpar filtros
@@ -957,7 +972,7 @@ export function ConversationList({ activeId, onSelect, viewId }: ConversationLis
           </div>
         ) : (
           <>
-            {conversations.map((conv, index) => {
+            {visible.map((conv, index) => {
               const isActive = conv.id === activeId;
               const isSelected = selectedIds.has(conv.id);
               const inSelectionMode = selectedIds.size > 0;
@@ -1043,7 +1058,10 @@ export function ConversationList({ activeId, onSelect, viewId }: ConversationLis
                               >
                                 {conv.contact.name || conv.contact.phone || 'Desconhecido'}
                               </span>
-                              <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusColors[conv.status] || 'bg-zinc-300'}`} />
+                              <div
+                                title={QUEUE_BY_KEY[computeQueueStatus(conv)].label}
+                                className={`h-1.5 w-1.5 shrink-0 rounded-full ${QUEUE_BY_KEY[computeQueueStatus(conv)].dot}`}
+                              />
                             </div>
                             <div className="flex shrink-0 items-center gap-1.5">
                               <span

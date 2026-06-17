@@ -9,9 +9,24 @@ interface ChatInputProps {
   onSend: (text: string) => Promise<void>;
   onSendAudio?: (blob: Blob) => Promise<void>;
   disabled?: boolean;
+  /** Mensagem mostrada quando o composer está bloqueado (canal demo, inativo,
+   *  desconectado, conversa finalizada). Fallback para o aviso de encerrada. */
+  disabledMessage?: string;
+  /** Quando o bloqueio exige template (janela 24h), mostra a CTA "Enviar
+   *  template". Habilitada quando há callback para abrir o modal (C2.3c). */
+  showTemplateCta?: boolean;
+  /** Abre o modal de envio de template. Sem ele, a CTA fica só visual. */
+  onOpenTemplateModal?: () => void;
 }
 
-export function ChatInput({ onSend, onSendAudio, disabled }: ChatInputProps) {
+export function ChatInput({
+  onSend,
+  onSendAudio,
+  disabled,
+  disabledMessage,
+  showTemplateCta,
+  onOpenTemplateModal,
+}: ChatInputProps) {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isSendingAudio, setIsSendingAudio] = useState(false);
@@ -72,7 +87,17 @@ export function ChatInput({ onSend, onSendAudio, disabled }: ChatInputProps) {
   if (disabled) {
     return (
       <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-3 text-center text-sm text-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/50">
-        Conversa encerrada — reabra para enviar mensagens
+        <p>{disabledMessage || 'Conversa encerrada — reabra para enviar mensagens'}</p>
+        {showTemplateCta && (
+          <button
+            type="button"
+            onClick={onOpenTemplateModal}
+            disabled={!onOpenTemplateModal}
+            className="mx-auto mt-2 inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition-colors hover:border-primary/40 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Enviar template
+          </button>
+        )}
       </div>
     );
   }

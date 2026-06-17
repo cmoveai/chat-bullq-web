@@ -5,7 +5,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, CheckCheck, Clock, AlertCircle, ExternalLink } from 'lucide-react';
 import { inboxService, type Conversation, type Message } from '../services/inbox.service';
 import { ChatInput } from './chat-input';
+import { TemplateSendModal } from './template-send-modal';
 import { ConversationHeader } from './conversation-header';
+import { MessageOriginBadge } from './message-origin-badge';
 import { StoryReplyCard } from './story-reply-card';
 import { AudioMessagePlayer } from './audio-message-player';
 import {
@@ -21,6 +23,44 @@ import { useAuthStore } from '@/stores/auth-store';
 interface ChatPanelProps {
   conversation: Conversation;
   onConversationUpdate: () => void;
+}
+
+const COMPOSER_BLOCK_MESSAGE: Record<string, string> = {
+  closed: 'Reabra a conversa para responder.',
+  demo_channel: 'Este é um canal demo. Nenhuma mensagem real será enviada.',
+  inactive_channel: 'Conecte o canal para enviar mensagens.',
+  disconnected_channel: 'Conecte o canal para enviar mensagens.',
+  unsupported_channel: 'Este canal ainda não suporta envio pelo Inbox.',
+  outside_whatsapp_window:
+    'A janela de resposta do WhatsApp expirou. Envie um template aprovado pela Meta para retomar a conversa.',
+  no_inbound_message:
+    'Para iniciar esta conversa, será necessário enviar um template aprovado pela Meta.',
+};
+
+// Motivos de bloqueio que exigem template (C2.1) — habilitam a CTA placeholder.
+const TEMPLATE_REASONS = new Set(['outside_whatsapp_window', 'no_inbound_message']);
+
+/**
+ * Estado do composer a partir do sendability do canal (vem do detalhe da
+ * conversa). Sem esse dado (ex.: objeto vindo da listagem), cai no antigo
+ * critério de conversa CLOSED. O bloqueio real é garantido no backend.
+ */
+function composerBlock(
+  conversation: Conversation,
+): { disabled: boolean; message?: string; templateCta?: boolean } {
+  const ch = conversation.channel;
+  if (ch?.canSend === false) {
+    const reason = ch.sendBlockReason ?? (conversation.status === 'CLOSED' ? 'closed' : null);
+    return {
+      disabled: true,
+      message: reason ? COMPOSER_BLOCK_MESSAGE[reason] : undefined,
+      templateCta: reason ? TEMPLATE_REASONS.has(reason) : false,
+    };
+  }
+  if (ch?.canSend === undefined && conversation.status === 'CLOSED') {
+    return { disabled: true, message: COMPOSER_BLOCK_MESSAGE.closed };
+  }
+  return { disabled: false };
 }
 
 const statusIcons: Record<string, React.ElementType> = {
@@ -286,6 +326,7 @@ function ContactAvatar({
 
 export function ChatPanel({ conversation, onConversationUpdate }: ChatPanelProps) {
   const queryClient = useQueryClient();
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { on, emit, onReconnect } = useSocket();
   const user = useAuthStore((s) => s.user);
@@ -485,6 +526,7 @@ export function ChatPanel({ conversation, onConversationUpdate }: ChatPanelProps
                           {msg.sender?.name || user?.name}
                         </p>
                       )}
+                      <MessageOriginBadge message={msg} align={isOutbound ? 'right' : 'left'} />
                       {msg.metadata?.replyTo?.story && (
                         <StoryReplyCard
                           story={msg.metadata.replyTo.story}
@@ -596,7 +638,19 @@ export function ChatPanel({ conversation, onConversationUpdate }: ChatPanelProps
       <ChatInput
         onSend={handleSend}
         onSendAudio={handleSendAudio}
-        disabled={conversation.status === 'CLOSED'}
+        disabled={composerBlock(conversation).disabled}
+        disabledMessage={composerBlock(conversation).message}
+        showTemplateCta={composerBlock(conversation).templateCta}
+        onOpenTemplateModal={() => setTemplateModalOpen(true)}
+      />
+
+      <TemplateSendModal
+        open={templateModalOpen}
+        onClose={() => setTemplateModalOpen(false)}
+        channelId={conversation.channelId}
+        channelName={conversation.channel?.name}
+        conversationId={conversation.id}
+        onSent={onConversationUpdate}
       />
     </div>
   );
