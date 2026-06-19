@@ -121,10 +121,8 @@ export function TenantSidebar() {
       </nav>
 
       <div className="tplan">
-        <h3>Plano Growth</h3>
-        <p>Renova em 23 dias</p>
-        <div className="ttrack"><div className="tfill" /></div>
-        <div className="tusage"><span>Conversas</span><b>24.680 / 50.000</b></div>
+        <h3>Seu plano</h3>
+        <p>Veja os planos e gerencie sua assinatura EIXXO.</p>
         <Link href="/plans"><button>Ver planos</button></Link>
       </div>
 
