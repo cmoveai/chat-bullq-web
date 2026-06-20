@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -9,41 +9,30 @@ import {
 } from 'lucide-react';
 import { authService } from '../services/auth.service';
 
-type VerifyState = 'verifying' | 'success' | 'error' | 'no-token';
+type VerifyState = 'confirm' | 'verifying' | 'success' | 'error' | 'no-token';
 
 export function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const [state, setState] = useState<VerifyState>(token ? 'verifying' : 'no-token');
+  // Confirmação exige ação explícita (clique). NÃO auto-verifica no carregamento:
+  // scanners/prefetch de e-mail fazem GET no link e não podem consumir o token sozinhos.
+  const [state, setState] = useState<VerifyState>(token ? 'confirm' : 'no-token');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [resendEmail, setResendEmail] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
 
-  useEffect(() => {
+  const handleConfirm = async () => {
     if (!token) return;
-
-    let active = true;
-    authService
-      .verifyEmail(token)
-      .then(() => {
-        if (!active) return;
-        setState('success');
-      })
-      .catch((err) => {
-        if (!active) return;
-        setState('error');
-        setErrorMessage(
-          err instanceof Error
-            ? err.message
-            : 'Token inválido ou expirado',
-        );
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [token]);
+    setState('verifying');
+    try {
+      await authService.verifyEmail(token);
+      setState('success');
+    } catch (err) {
+      setState('error');
+      setErrorMessage(err instanceof Error ? err.message : 'Token inválido ou expirado');
+    }
+  };
 
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +51,34 @@ export function VerifyEmailForm() {
       setResendLoading(false);
     }
   };
+
+  // CONFIRMAR · ação explícita do usuário (anti-prefetch/scanner)
+  if (state === 'confirm') {
+    return (
+      <div className="w-full">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+            <Mail className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-white">
+            Confirme seu e-mail
+          </h2>
+          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            Clique no botão abaixo pra confirmar seu e-mail e ativar sua conta.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleConfirm}
+          className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700"
+        >
+          Confirmar e-mail
+          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+        </button>
+      </div>
+    );
+  }
 
   // VERIFICANDO
   if (state === 'verifying') {
@@ -205,7 +222,7 @@ export function VerifyEmailForm() {
 
       <p className="mt-8 text-center text-xs text-zinc-500 dark:text-zinc-400">
         Não recebeu o e-mail anterior? Pode estar em spam ou promoções. Adicione
-        cris@cmove.ai aos contatos confiáveis.
+        no-reply@eixxohub.com aos contatos confiáveis.
       </p>
     </div>
   );

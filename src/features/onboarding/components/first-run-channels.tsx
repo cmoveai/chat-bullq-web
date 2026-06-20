@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { channelsService, type Channel } from '@/features/channels/services/channels.service';
+import { billingService } from '@/features/billing/services/billing.service';
 import { useOrgId } from '@/hooks/use-org-query-key';
 import { useAuthStore } from '@/stores/auth-store';
 import { ActivationConnect } from './activation-connect';
@@ -45,10 +46,24 @@ export function FirstRunChannelOnboarding() {
     enabled: !!orgId,
   });
 
+  // Mesma query/key do AccountSuspendedBanner (React Query dedupe · sem request extra).
+  // Conta suspensa NÃO vê o onboarding de canal: o fluxo único é ativar o plano antes.
+  const { data: billing } = useQuery({
+    queryKey: ['billing', 'me', 'status'],
+    queryFn: () => billingService.getStatus(),
+  });
+  const isSuspended = billing?.suspended === true;
+
   const hasRealChannel = (channels ?? []).some(isRealConnectedChannel);
   const onChannelsArea = pathname?.startsWith('/settings/channels') ?? false;
   const show =
-    !isInternalDevBypass && !onChannelsArea && !isLoading && channels !== undefined && !hasRealChannel;
+    !isInternalDevBypass &&
+    !onChannelsArea &&
+    !isLoading &&
+    channels !== undefined &&
+    !hasRealChannel &&
+    billing !== undefined &&
+    !isSuspended;
 
   if (!show) return null;
   return <ActivationConnect variant="overlay" />;
