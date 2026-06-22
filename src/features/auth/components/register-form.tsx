@@ -41,6 +41,7 @@ export function RegisterForm() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const inviteToken = searchParams.get('invite');
+  const pilotInvite = searchParams.get('pilotInvite');
   const planIntent = searchParams.get('plan') as 'starter' | 'growth' | 'pro' | null;
   const cycleIntent = searchParams.get('cycle') as 'monthly' | 'quarterly' | null;
   const prefilledName = searchParams.get('name') || '';
@@ -87,6 +88,7 @@ export function RegisterForm() {
             ? { planId: planIntent, cycle: cycleIntent }
             : undefined,
         inviteToken: inviteToken || undefined,
+        pilotToken: pilotInvite || undefined,
       });
 
       localStorage.setItem('access_token', result.accessToken);
@@ -98,11 +100,14 @@ export function RegisterForm() {
       toast.success(
         inviteInfo
           ? `Bem-vinda! Você entrou em ${inviteInfo.organization.name}`
-          : 'Conta criada · vamos validar seu WhatsApp',
+          : pilotInvite
+            ? 'Conta de piloto criada · confirme seu e-mail para começar'
+            : 'Conta criada · vamos validar seu WhatsApp',
       );
-      router.push(inviteInfo ? '/inbox' : '/onboarding/verify-phone');
+      router.push(inviteInfo ? '/inbox' : pilotInvite ? '/home' : '/onboarding/verify-phone');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao criar conta');
+      const msg = err instanceof Error ? err.message : 'Erro ao criar conta';
+      toast.error(pilotInvite ? `${msg} Suporte oficial: +55 11 94346-4000` : msg);
     } finally {
       setIsLoading(false);
     }

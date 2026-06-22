@@ -14,6 +14,7 @@ interface RegisterPayload {
   companySize?: string;
   planIntent?: { planId: 'starter' | 'growth' | 'pro'; cycle: 'monthly' | 'quarterly' };
   inviteToken?: string;
+  pilotToken?: string;
 }
 
 interface AuthUser {
