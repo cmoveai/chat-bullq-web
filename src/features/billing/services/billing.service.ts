@@ -66,6 +66,7 @@ export const billingService = {
 
   async getStatus(): Promise<{
     suspended: boolean;
+    isPilot: boolean;
     reason:
       | 'trial_pending_payment'
       | 'trial_expired'
