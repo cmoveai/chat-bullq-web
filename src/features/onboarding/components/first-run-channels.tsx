@@ -53,6 +53,8 @@ export function FirstRunChannelOnboarding() {
     queryFn: () => billingService.getStatus(),
   });
   const isSuspended = billing?.suspended === true;
+  // demo-first: conta piloto nunca e bloqueada pelo activation gate.
+  const isPilot = billing?.isPilot === true;
 
   const hasRealChannel = (channels ?? []).some(isRealConnectedChannel);
   const onChannelsArea = pathname?.startsWith('/settings/channels') ?? false;
@@ -63,7 +65,8 @@ export function FirstRunChannelOnboarding() {
     channels !== undefined &&
     !hasRealChannel &&
     billing !== undefined &&
-    !isSuspended;
+    !isSuspended &&
+    !isPilot;
 
   if (!show) return null;
   return <ActivationConnect variant="overlay" />;

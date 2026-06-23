@@ -9,6 +9,7 @@ import { billingService } from '../services/billing.service';
 
 type Status = {
   suspended: boolean;
+  isPilot: boolean;
   reason:
     | 'trial_pending_payment'
     | 'trial_expired'
@@ -51,11 +52,31 @@ export function AccountSuspendedBanner() {
   // redireciona pra /plans (cliente precisa pagar antes de acessar)
   useEffect(() => {
     if (!data || !data.suspended) return;
+    // Piloto encerrado nao e empurrado pra pagamento: sem redirect pra /plans.
+    if (data.isPilot) return;
     const allowed = ALLOWED_WHEN_SUSPENDED.some((p) => pathname.startsWith(p));
     if (!allowed) router.replace('/plans');
   }, [data, pathname, router]);
 
   if (!data || !data.suspended || !data.reason) return null;
+
+  if (data.isPilot) {
+    return (
+      <div className="sticky top-0 z-30 border-b-2 border-emerald-500 bg-zinc-950 px-4 py-3 shadow-md">
+        <div className="mx-auto flex max-w-7xl items-center gap-3">
+          <span className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
+            <AlertTriangle className="h-4 w-4" />
+          </span>
+          <div className="text-sm text-zinc-100">
+            <strong className="font-bold text-white">Piloto encerrado.</strong>{' '}
+            <span className="text-zinc-400">
+              Seu piloto gratuito de 7 dias terminou. Fale com a EIXXO para próximos passos. Suporte oficial: +55 11 94346-4000.
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sticky top-0 z-30 border-b-2 border-red-500 bg-zinc-950 px-4 py-3 shadow-md">
